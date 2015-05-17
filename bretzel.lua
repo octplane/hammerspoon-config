@@ -13,7 +13,7 @@ local tagCommandList= tagCommand .. " -Ng"
 
 function Bretzel.boot(tagsAndAge, archiveAge)
 
-  local function scanFiles()
+  local function ScanFiles()
     print("Desktop cleaner waking up...")
     local desktop = os.getenv("HOME") .. "/Desktop/"
     local iter, dir_data = hs.fs.dir(desktop)
@@ -25,8 +25,9 @@ function Bretzel.boot(tagsAndAge, archiveAge)
     end
   end
 
-  bretzelTimer = hs.timer.new(3600, scanFiles)
+  bretzelTimer = hs.timer.new(3600, ScanFiles)
   bretzelTimer:start()
+  ScanFiles()
 
 end
 
@@ -47,29 +48,21 @@ function ProcessFile(fname, basename, tagsAndAge, archiveAge)
     hs.fs.mkdir(archiveFolder)
     os.rename(fname, archiveFolder .. basename)
   else
-    local removeCandidates = {}
 
     for tagName, duration in pairs(tagsAndAge) do
       if since > duration then
         tag = tagName
-      else
-        table.insert(removeCandidates, tagName)
-        break
       end
     end
 
     local tagParams = ""
     if tag ~= "" then
-      tagParams = " -a " .. tag
+      tagParams = " -s " .. tag
+      efname = shell.escape(fname)
+      print(tagCommand .. tagParams .. " " .. efname)
+      os.execute(tagCommand .. tagParams .. " " .. efname)
     end
 
-    if #removeCandidates > 0 then
-      tagParams = tagParams .. " -r "
-      tagParams = tagParams .. table.concat(removeCandidates, ",")
-    end
-
-    efname = shell.escape(fname)
-    os.execute(tagCommand .. tagParams .. " " .. efname)
   end
 end
 

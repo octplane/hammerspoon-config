@@ -5,7 +5,7 @@ local Stats = require 'stats'
 local fnutils = require "hs.fnutils"
 
 
-local tagsAndAge = { Orange = 86400 * 4, Rouge=86400 * 8 }
+local tagsAndAge = { Orange = 86400 * 4, Rouge = 86400 * 8 }
 local archiveAge = 86400 * 12
 Bretzel.boot(tagsAndAge, archiveAge)
 
