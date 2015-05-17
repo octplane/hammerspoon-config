@@ -1,7 +1,7 @@
 
 local Grid = require 'grid'
 local Bretzel = require 'bretzel'
-
+local Stats = require 'stats'
 local fnutils = require "hs.fnutils"
 
 
@@ -27,32 +27,32 @@ local mash = {"cmd", "alt", "ctrl"}
 local mashshift = {"cmd", "alt", "ctrl", "shift"}
 
 
+-- --
+-- -- replace caffeine
+-- --
+-- local caffeine = hs.menubar.new()
+-- function setCaffeineDisplay(state)
+--     local result
+--     if state then
+--         result = caffeine:setIcon("caffeine-on.pdf")
+--     else
+--         result = caffeine:setIcon("caffeine-off.pdf")
+--     end
+-- end
 --
--- replace caffeine
+-- function caffeineClicked()
+--     setCaffeineDisplay(hs.caffeinate.toggle("displayIdle"))
+-- end
 --
-local caffeine = hs.menubar.new()
-function setCaffeineDisplay(state)
-    local result
-    if state then
-        result = caffeine:setIcon("caffeine-on.pdf")
-    else
-        result = caffeine:setIcon("caffeine-off.pdf")
-    end
-end
-
-function caffeineClicked()
-    setCaffeineDisplay(hs.caffeinate.toggle("displayIdle"))
-end
-
-if caffeine then
-    caffeine:setClickCallback(caffeineClicked)
-    setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
-end
-
-hs.hotkey.bind(mash, "/", function() caffeineClicked() end)
+-- if caffeine then
+--     caffeine:setClickCallback(caffeineClicked)
+--     setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
+-- end
 --
--- /replace caffeine
---
+-- hs.hotkey.bind(mash, "/", function() caffeineClicked() end)
+-- --
+-- -- /replace caffeine
+-- --
 
 -- Window management
 hs.hotkey.bind(mash, 'K', Grid.fullscreen)

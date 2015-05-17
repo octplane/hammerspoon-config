@@ -14,7 +14,7 @@ local tagCommandList= tagCommand .. " -Ng"
 function Bretzel.boot(tagsAndAge, archiveAge)
 
   local function scanFiles()
-    hs.alert("Desktop cleaner waking up...")
+    print("Desktop cleaner waking up...")
     local desktop = os.getenv("HOME") .. "/Desktop/"
     local iter, dir_data = hs.fs.dir(desktop)
     while true do
@@ -25,7 +25,8 @@ function Bretzel.boot(tagsAndAge, archiveAge)
     end
   end
 
-  hs.timer.doAfter(10, scanFiles):start()
+  bretzelTimer = hs.timer.new(3600, scanFiles)
+  bretzelTimer:start()
 
 end
 
