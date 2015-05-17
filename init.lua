@@ -1,10 +1,14 @@
 
 local Grid = require 'grid'
-local Hazel = require 'hazel'
+local Bretzel = require 'bretzel'
 
 local fnutils = require "hs.fnutils"
 
-Hazel.boot()
+
+local tagsAndAge = { Orange = 86400 * 4, Rouge=86400 * 8 }
+local archiveAge = 86400 * 12
+Bretzel.boot(tagsAndAge, archiveAge)
+
 
 -- Window Manipulation
 
