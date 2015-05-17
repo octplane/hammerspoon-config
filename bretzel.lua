@@ -11,17 +11,16 @@ local tagCommand = os.getenv("HOME") .. "/bin/tag"
 local tagCommandList= tagCommand .. " -Ng"
 
 
-function Bretzel.boot(tagsAndAge, archiveAge)
+function Bretzel.boot(path, tagsAndAge, archiveAge)
 
   local function ScanFiles()
-    print("Desktop cleaner waking up...")
-    local desktop = os.getenv("HOME") .. "/Desktop/"
-    local iter, dir_data = hs.fs.dir(desktop)
+    print("cleaner waking up for " .. path)
+    local iter, dir_data = hs.fs.dir(path)
     while true do
   	  local basename = iter(dir_data)
   	  if basename == nil then break end
-      local fname = desktop .. basename
-      ProcessFile(fname, basename, tagsAndAge, archiveAge)
+      local fname = path .. basename
+      ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
     end
   end
 
@@ -31,20 +30,20 @@ function Bretzel.boot(tagsAndAge, archiveAge)
 
 end
 
-function ProcessFile(fname, basename, tagsAndAge, archiveAge)
+function ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
   local mode = hs.fs.attributes(fname, "mode")
 
   -- ignore non files
-  if mode ~= "file" then
-    return
-  end
+  -- if mode ~= "file" then
+  --   return
+  -- end
 
   local now = os.time()
   local since = now - hs.fs.attributes(fname, "access")
   local tag = ""
 
   if since > archiveAge then
-    local archiveFolder = os.getenv("HOME") .. "/Desktop/" .. "Archive/"
+    local archiveFolder = path .. "Archive/"
     hs.fs.mkdir(archiveFolder)
     os.rename(fname, archiveFolder .. basename)
   else
@@ -57,6 +56,8 @@ function ProcessFile(fname, basename, tagsAndAge, archiveAge)
 
     local tagParams = ""
     if tag ~= "" then
+      -- we actually SET the tag and erase all others.
+      -- this kinda sucks if you have your tags in this folder
       tagParams = " -s " .. tag
       efname = shell.escape(fname)
       print(tagCommand .. tagParams .. " " .. efname)
