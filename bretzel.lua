@@ -39,7 +39,7 @@ function ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
   -- end
 
   local now = os.time()
-  local since = now - hs.fs.attributes(fname, "access")
+  local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
 
   if since > archiveAge then

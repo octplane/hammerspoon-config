@@ -16,7 +16,7 @@ Bretzel.boot(os.getenv("HOME") .. "/Downloads/",
 		Orange = 86400 * 7,
 		Rouge = 86400 * 30
 	},
-	86400 * 60
+	86400 * 10
 )
 
 -- Window Manipulation
