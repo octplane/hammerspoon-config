@@ -1,3 +1,4 @@
+hs.console.clearConsole()
 
 local Grid = require 'grid'
 local Bretzel = require 'bretzel'
@@ -14,7 +15,6 @@ Bretzel.boot(os.getenv("HOME") .. "/Downloads/",
 	{
 		Vert = 86400 * 4,
 		Orange = 86400 * 7,
-		Rouge = 86400 * 30
 	},
 	86400 * 10
 )
@@ -63,14 +63,21 @@ local mashshift = {"cmd", "alt", "ctrl", "shift"}
 -- -- /replace caffeine
 -- --
 
+hs.hotkey.bind(mash, 'E', function()
+	ok,result = hs.applescript('tell application "Finder" to eject (every disk whose ejectable is true)')
+	hs.notify.show("Hammerspoon", "", "Ejected all disks", "")
+
+end)
+
 -- Window management
 hs.hotkey.bind(mash, 'K', Grid.fullscreen)
 hs.hotkey.bind(mash, 'H', Grid.lefthalf)
 hs.hotkey.bind(mash, 'L', Grid.righthalf)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "R", function()
+hs.hotkey.bind(mash, "R", function()
   hs.reload()
 end)
 
 -- Finally, show a notification that we finished loading the config successfully
 hs.notify.show("Hammerspoon", "", "Config loaded!", "")
+
