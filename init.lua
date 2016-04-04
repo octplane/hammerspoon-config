@@ -1,7 +1,15 @@
 hs.console.clearConsole()
 
+local mash = {"cmd", "alt", "ctrl"}
+hs.hotkey.bind(mash, "R", function()
+  hs.reload()
+end)
+
+
+
 local Grid = require 'grid'
 local Bretzel = require 'bretzel'
+local UrlAnnotator = require 'url_annotator'
 -- local Stats = require 'stats'
 local fnutils = require "hs.fnutils"
 
@@ -32,7 +40,6 @@ hs.hotkey.bind({"alt"}, "Tab", function()
 end)
 
 
-local mash = {"cmd", "alt", "ctrl"}
 local mashshift = {"cmd", "alt", "ctrl", "shift"}
 
 
@@ -73,10 +80,8 @@ end)
 hs.hotkey.bind(mash, 'K', Grid.fullscreen)
 hs.hotkey.bind(mash, 'H', Grid.lefthalf)
 hs.hotkey.bind(mash, 'L', Grid.righthalf)
+hs.hotkey.bind(mash, 'U', UrlAnnotator.annotate)
 
-hs.hotkey.bind(mash, "R", function()
-  hs.reload()
-end)
 
 -- Finally, show a notification that we finished loading the config successfully
 hs.notify.show("Hammerspoon", "", "Config loaded!", "")
