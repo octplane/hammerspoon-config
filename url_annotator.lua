@@ -1,4 +1,11 @@
--- https://gist.github.com/vitorgalvao/5392178
+-- URL Annotator
+-- Opens or Create a note in Ulysses
+-- Associated to the current visible url in your browser
+-- 2 functions :
+--
+-- lookup attempts to open the existing note
+-- create will create a new note for this url
+
 UrlAnnotator = {}
 
 function UrlAnnotator.lookup()
@@ -24,6 +31,7 @@ function UrlAnnotator.create()
   hs.eventtap.keyStrokes(url)
 end
 
+-- https://gist.github.com/vitorgalvao/5392178
 function UrlAnnotator.currentURL()
   script = [[
 
