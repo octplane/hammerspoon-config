@@ -1,7 +1,30 @@
 -- https://gist.github.com/vitorgalvao/5392178
 UrlAnnotator = {}
 
-function UrlAnnotator.annotate()
+function UrlAnnotator.lookup()
+  url = UrlAnnotator.currentURL()
+  hs.application.launchOrFocus("Ulysses")
+  app = hs.application.find("ulysses")
+  app:selectMenuItem({"File", "Open from…", "Library…"})
+  key = string.sub(hs.hash.SHA1(url), 0, 6)
+  hs.eventtap.keyStrokes(key)
+  hs.timer.usleep(600000)
+  hs.eventtap.keyStrokes("\n")
+
+end
+
+function UrlAnnotator.create()
+  url = UrlAnnotator.currentURL()
+  hs.application.launchOrFocus("Ulysses")
+  app = hs.application.find("ulysses")
+  app:selectMenuItem({"File", "New Sheet"})
+  hs.timer.usleep(300000)
+  key = string.sub(hs.hash.SHA1(url), 0, 6)
+  hs.eventtap.keyStrokes("# link-" .. key .. "\n")
+  hs.eventtap.keyStrokes(url)
+end
+
+function UrlAnnotator.currentURL()
   script = [[
 
 # This example will return both the URL and title for the frontmost tab of the active browser, separated by a newline.
@@ -28,7 +51,8 @@ end if
 return currentTabUrl & "\n" & currentTabTitle
 ]]
   ok, result = hs.applescript(script)
-  hs.notify.show("Hammerspoon", "", result, "")
+  -- hs.notify.show("Hammerspoon", "", result, "")
+  return result
 end
 
 return UrlAnnotator

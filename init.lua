@@ -80,7 +80,8 @@ end)
 hs.hotkey.bind(mash, 'K', Grid.fullscreen)
 hs.hotkey.bind(mash, 'H', Grid.lefthalf)
 hs.hotkey.bind(mash, 'L', Grid.righthalf)
-hs.hotkey.bind(mash, 'U', UrlAnnotator.annotate)
+hs.hotkey.bind(mash, 'U', UrlAnnotator.create)
+hs.hotkey.bind(mash, 'I', UrlAnnotator.lookup)
 
 
 -- Finally, show a notification that we finished loading the config successfully
