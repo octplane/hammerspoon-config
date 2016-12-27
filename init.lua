@@ -5,8 +5,6 @@ hs.hotkey.bind(mash, "R", function()
   hs.reload()
 end)
 
-
-
 local Grid = require 'grid'
 local Bretzel = require 'bretzel'
 local UrlAnnotator = require 'url_annotator'
