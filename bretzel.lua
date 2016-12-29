@@ -5,6 +5,7 @@ local fnutils = require "hs.fnutils"
 local fs = require "hs.fs"
 
 local subfolders = { mp3 = "Musics",
+ app = "Apps",
  aac = "Musics",
  flac = "Musics",
  ogg = "Musics",
@@ -64,29 +65,28 @@ local subfolders = { mp3 = "Musics",
  md = "Documents",
  json = "Documents",
  csv = "Documents",
+ rtf = "Documents",
  mobi = "Books",
  epub = "Books",
  chm = "Books",
  deb = "DEBPackages",
  exe = "Programs",
  msi = "Programs",
- rpm = "RPMPackages"
+ rpm = "RPMPackages",
+ yml = "Code",
+ smc = "Roms",
+ torrent = "Torrents",
+ ttf = "Fonts"
 }
 
-function Bretzel.boot(path, tagsAndAge, archiveAge)
+-- sortRoot: if set to true, will sort path
+--           if set to false, sort only inside the Archive folder
+
+function Bretzel.boot(path, tagsAndAge, archiveAge, sortRoot)
 
   local function ScanFiles()
-    print("cleaner waking up for " .. path)
-    local iter, dir_data = hs.fs.dir(path)
-    while true do
-  	  local basename = iter(dir_data)
-      if basename == ".." or basename == "." then
-      else
-        if basename == nil then break end
-        local fname = path .. basename
-        ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
-      end
-    end
+    print("Bretzel waking up for " .. path)
+    ProcessDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
   end
 
   bretzelTimer = hs.timer.new(3600, ScanFiles)
@@ -95,36 +95,65 @@ function Bretzel.boot(path, tagsAndAge, archiveAge)
 
 end
 
-function ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
+function ProcessDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sortHere)
+  print("Scanning Directory " .. directory_root)
+   -- every file in here should be relocated to directory_root .. subfolder
+  local iter, dir_data = hs.fs.dir(directory_root)
+  while true do
+    local basename = iter(dir_data)
+    if basename == ".." or basename == "." then
+    else
+      if basename == nil then break end
+      local fname = directory_root .. "/" .. basename
+      local mode = hs.fs.attributes(fname, "mode")
+      if mode == nil then
+        print(fname .. " nil")
+      else
+        print(fname .. " " .. mode)
+      end
+
+      if mode == "file" and sortHere then
+        ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
+      elseif mode == "directory" then
+        local s,e = string.find(basename, "%.app$")
+        if s then
+          ProcessFile(fname, scan_root, fname, basename, tagsAndAge, archiveAge)
+        else
+          ProcessDirectory(fname, scan_root, tagsAndAge, archiveAge, true)
+        end
+      end
+    end
+  end
+end
+
+function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge, archiveFolder)
   local now = os.time()
   local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
   local sf = "Default"
 
-  print(basename)
   local s,e = string.find(basename, "%.[^%.]+$")
-  print(s)
   if s then
     local ext = string.lower(string.sub(basename, s + 1))
-    print("Extension is " .. ext)
     sf = subfolders[ext]
     if sf == nil then
       sf = "Default"
     end
-    print(basename .. " -> " .. sf .. "/" .. basename)
   else
     print("No extensions for ".. basename)
   end
 
   if since > archiveAge then
-    local archiveFolder = path .. "Archive/" .. sf .. "/"
-    hs.fs.mkdir(archiveFolder)
-
     -- remove tags
     existingTags = hs.fs.tagsGet(fname)
-    hs.fs.tagsRemove(fname, existingTags)
+    if existingTags then
+      hs.fs.tagsRemove(fname, existingTags)
+    end
 
+    local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
+    hs.fs.mkdir(archiveFolder)
     -- move to archive
+    print(scan_root .. " X " .. fname .. " -> " .. archiveFolder .. " | " .. basename)
     os.rename(fname, archiveFolder .. basename)
   else
 
@@ -140,7 +169,7 @@ function ProcessFile(path, fname, basename, tagsAndAge, archiveAge)
       -- this kinda sucks if you have your tags in this folder
       existingTags = hs.fs.tagsGet(fname)
       if tags ~= nil then
-	hs.fs.tagsRemove(fname, existingTags)
+	      hs.fs.tagsRemove(fname, existingTags)
       end
       newTags = {}
       newTags[1] = tag

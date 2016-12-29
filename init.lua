@@ -15,14 +15,15 @@ local fnutils = require "hs.fnutils"
 local tagsAndAge = { Orange = 86400 * 4, Rouge = 86400 * 8 }
 local archiveAge = 86400 * 12
 
-Bretzel.boot(os.getenv("HOME") .. "/Desktop/", tagsAndAge, archiveAge)
+Bretzel.boot(os.getenv("HOME") .. "/Desktop", tagsAndAge, archiveAge, false)
 
-Bretzel.boot(os.getenv("HOME") .. "/Downloads/",
+Bretzel.boot(os.getenv("HOME") .. "/Downloads",
 	{
 		Vert = 86400 * 4,
 		Orange = 86400 * 7,
 	},
-	86400 * 10
+	86400 * 10,
+	true
 )
 
 -- Window Manipulation
