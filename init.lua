@@ -14,7 +14,6 @@ local fnutils = require "hs.fnutils"
 
 local tagsAndAge = { Orange = 86400 * 4, Rouge = 86400 * 8 }
 local archiveAge = 86400 * 12
-
 Bretzel.boot(os.getenv("HOME") .. "/Desktop", tagsAndAge, archiveAge, false)
 
 Bretzel.boot(os.getenv("HOME") .. "/Downloads",
@@ -35,7 +34,25 @@ hs.hotkey.bind({"alt"}, "Tab", function()
 	local app = win:application()
 	local windows = app:allWindows()
 
-	windows[#windows]:focus()
+	if #windows == 1 then
+		return
+	end
+
+	local focusable = 12
+
+	for pos,lwin in pairs(windows) do
+		if focusable == nil then
+			focusable = lwin
+		end
+		if lwin == win then
+			focusable = nil
+		end
+	end
+	if focusable == 12 then
+		focusable = windows[#windows]
+	end
+
+	focusable:focus()
 end)
 
 
@@ -79,8 +96,6 @@ end)
 hs.hotkey.bind(mash, 'K', Grid.fullscreen)
 hs.hotkey.bind(mash, 'H', Grid.lefthalf)
 hs.hotkey.bind(mash, 'L', Grid.righthalf)
-hs.hotkey.bind(mash, 'U', UrlAnnotator.create)
-hs.hotkey.bind(mash, 'I', UrlAnnotator.lookup)
 
 
 -- Finally, show a notification that we finished loading the config successfully
