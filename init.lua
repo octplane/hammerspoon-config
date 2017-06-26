@@ -1,15 +1,24 @@
 hs.console.clearConsole()
 
 local mash = {"cmd", "alt", "ctrl"}
-hs.hotkey.bind(mash, "R", function()
+local mashshift = {"cmd", "alt", "ctrl", "shift"}
+
+hs.hotkey.bind(mashshift, "R", function()
   hs.reload()
+end)
+
+hs.hotkey.bind(mash, "/", function()
+  hs.toggleConsole()
 end)
 
 local Grid = require 'grid'
 local Bretzel = require 'bretzel'
-local UrlAnnotator = require 'url_annotator'
--- local Stats = require 'stats'
 local fnutils = require "hs.fnutils"
+
+local p = require "popup"
+
+p("https://dd.slack.com", "slack", ",", 16, 16, 800, 640)
+p("https://mail.google.com", "gmail", ".", 16, 640, 800, 1200)
 
 
 local tagsAndAge = { Orange = 86400 * 4, Rouge = 86400 * 8 }
@@ -29,34 +38,37 @@ Bretzel.boot(os.getenv("HOME") .. "/Downloads",
 
 -- Bind alt-Tab to show next window of current application
 
-hs.hotkey.bind({"alt"}, "Tab", function()
-	local win = hs.window.focusedWindow()
-	local app = win:application()
-	local windows = app:allWindows()
+-- hs.hotkey.bind({"alt"}, "Tab", function()
+-- 	local win = hs.window.focusedWindow()
+-- 	local app = win:application()
+-- 	local windows = app:allWindows()
 
-	if #windows == 1 then
-		return
-	end
+-- 	print("We have " .. #windows .. " windows.")
+-- 	if #windows == 1 then
+-- 		return
+-- 	end
 
-	local focusable = 12
+-- 	local focusable = 12
 
-	for pos,lwin in pairs(windows) do
-		if focusable == nil then
-			focusable = lwin
-		end
-		if lwin == win then
-			focusable = nil
-		end
-	end
-	if focusable == 12 then
-		focusable = windows[#windows]
-	end
+-- 	for pos,lwin in pairs(windows) do
+-- 		if focusable == nil then
+-- 			print("Focussing on window #" .. pos)
+-- 			focusable = lwin
+-- 		end
+-- 		if lwin == win then
+-- 			print("This window is #" .. pos)
+-- 			focusable = nil
+-- 		end
+-- 	end
+-- 	if focusable == 12 then
+-- 		print("We never found our window :(")
+-- 		focusable = windows[#windows]
+-- 	end
 
-	focusable:focus()
-end)
+-- 	focusable:focus()
+-- end)
 
 
-local mashshift = {"cmd", "alt", "ctrl", "shift"}
 
 
 -- --
