@@ -85,7 +85,7 @@ local subfolders = { mp3 = "Musics",
 function Bretzel.boot(path, tagsAndAge, archiveAge, sortRoot)
 
   local function ScanFiles()
-    print("[" .. os.date() .. "] Bretzel waking up for " .. path)
+    print("Bretzel waking up for " .. path)
     ProcessDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
   end
 
@@ -109,6 +109,7 @@ function ProcessDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sor
       if mode == "file" then
         ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
       elseif mode == "directory" then
+	print("Directory " .. fname)
         if basename == "Archive" and directory_root == scan_root then
           -- nope
         else
@@ -129,7 +130,7 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
   local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
   local sf = "Default"
-
+  print(fname .. ", since:" .. since)
 
   local s,e = string.find(basename, "%.[^%.]+$")
   if s then
@@ -151,8 +152,10 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
     end
 
     local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
+    print("We should archive to " .. archiveFolder)
     dest = archiveFolder .. basename
-    if not dest == fname then
+    if dest ~= fname then
+      hs.fs.mkdir(scan_root .. "/Archive")
       hs.fs.mkdir(archiveFolder)
       -- move to archive
       print(fname .. " -> " .. archiveFolder .. " | " .. basename)
@@ -165,7 +168,7 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
     for tagName, duration in pairs(tagsAndAge) do
 
       if since > duration then
-        print(fname .. "|" .. since .. " " .. duration)
+        print(fname .. "(since:" .. since .. ", archiveAge:" .. archiveAge .. "): " .. tagName)
         tag = tagName
       end
     end

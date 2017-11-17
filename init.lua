@@ -1,3 +1,4 @@
+hs.loadSpoon('FadeLogo'):start()
 hs.console.clearConsole()
 
 local mash = {"cmd", "alt", "ctrl"}
@@ -17,8 +18,7 @@ local fnutils = require "hs.fnutils"
 
 local p = require "popup"
 
-p("https://dd.slack.com", "slack", ",", 16, 16, 800, 640)
-p("https://mail.google.com", "gmail", ".", 16, 640, 800, 1200)
+-- p("https://dd.slack.com", "slack", ",", 16, 16, 800, 640)
 
 
 local tagsAndAge = { Orange = 86400 * 4, Rouge = 86400 * 8 }
@@ -105,10 +105,22 @@ hs.hotkey.bind(mash, 'E', function()
 end)
 
 -- Window management
-hs.hotkey.bind(mash, 'K', Grid.fullscreen)
-hs.hotkey.bind(mash, 'H', Grid.lefthalf)
-hs.hotkey.bind(mash, 'L', Grid.righthalf)
+--hs.hotkey.bind(mash, 'U', Grid.topleft)
+--hs.hotkey.bind(mash, 'I', Grid.topright)
+--hs.hotkey.bind(mash, 'K', Grid.fullscreen)
+--hs.hotkey.bind(mash, 'H', Grid.leftchunk)
+--hs.hotkey.bind(mash, 'L', Grid.rightchunk)
+--hs.hotkey.bind(mash, 'M', Grid.bottomleft)
+--hs.hotkey.bind(mash, ',', Grid.bottomright)
 
+-- dvorak mappings
+hs.hotkey.bind(mash, 'F', Grid.topleft)
+hs.hotkey.bind(mash, 'C', Grid.topright)
+hs.hotkey.bind(mash, 'H', Grid.fullscreen)
+hs.hotkey.bind(mash, 'D', Grid.leftchunk)
+hs.hotkey.bind(mash, 'T', Grid.rightchunk)
+hs.hotkey.bind(mash, 'B', Grid.bottomleft)
+hs.hotkey.bind(mash, 'W', Grid.bottomright)
 
 -- Finally, show a notification that we finished loading the config successfully
 hs.notify.show("Hammerspoon", "", "Config loaded!", "")
