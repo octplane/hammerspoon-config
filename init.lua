@@ -26,12 +26,12 @@ local archiveAge = 86400 * 12
 Bretzel.boot(os.getenv("HOME") .. "/Desktop", tagsAndAge, archiveAge, false)
 
 Bretzel.boot(os.getenv("HOME") .. "/Downloads",
-	{
-		Vert = 86400 * 4,
-		Orange = 86400 * 7,
-	},
-	86400 * 10,
-	true
+{
+  Vert = 86400 * 4,
+  Orange = 86400 * 7,
+},
+86400 * 10,
+true
 )
 
 -- Window Manipulation
@@ -99,29 +99,108 @@ Bretzel.boot(os.getenv("HOME") .. "/Downloads",
 -- --
 
 hs.hotkey.bind(mash, 'E', function()
-	ok,result = hs.applescript('tell application "Finder" to eject (every disk whose ejectable is true)')
-	hs.notify.show("Hammerspoon", "", "Ejected all disks", "")
+  ok,result = hs.applescript('tell application "Finder" to eject (every disk whose ejectable is true)')
+  hs.notify.show("Hammerspoon", "", "Ejected all disks", "")
 
 end)
 
--- Window management
---hs.hotkey.bind(mash, 'U', Grid.topleft)
---hs.hotkey.bind(mash, 'I', Grid.topright)
---hs.hotkey.bind(mash, 'K', Grid.fullscreen)
---hs.hotkey.bind(mash, 'H', Grid.leftchunk)
---hs.hotkey.bind(mash, 'L', Grid.rightchunk)
---hs.hotkey.bind(mash, 'M', Grid.bottomleft)
---hs.hotkey.bind(mash, ',', Grid.bottomright)
+wm_bindings={}
 
--- dvorak mappings
-hs.hotkey.bind(mash, 'F', Grid.topleft)
-hs.hotkey.bind(mash, 'C', Grid.topright)
-hs.hotkey.bind(mash, 'H', Grid.fullscreen)
-hs.hotkey.bind(mash, 'D', Grid.leftchunk)
-hs.hotkey.bind(mash, 'T', Grid.rightchunk)
-hs.hotkey.bind(mash, 'B', Grid.bottomleft)
-hs.hotkey.bind(mash, 'W', Grid.bottomright)
+function unbind()
+  for h,hotkey in pairs(wm_bindings) do
+    hotkey:disable():delete()
+  end
+  wm_bindings = {}
+end
+
+function show_temporary_notification(subtitle, infoText)
+  local notification = hs.notify.new(nil, 
+  { title="Hammerspoon",
+    subTitle=subtitle,
+    informativeText=infoText,
+    autoWithdraw=true,
+    hasActionButton=false})
+  notification:send()
+
+  local w = function()
+    notification:withdraw()
+  end
+  hs.timer.delayed.new(5, w):start()
+
+end
+
+function show_keyboard_notif(keyboard)
+  show_temporary_notification("Keyboard", "Switched to " .. keyboard)
+end
+
+-- Window management
+function bind_for_qwerty(show_notification)
+  unbind()
+  if show_notification then
+    show_keyboard_notif("qwerty")
+  end
+
+  wm_bindings = {
+    hs.hotkey.bind(mash, 'U', Grid.topleft),
+    hs.hotkey.bind(mash, 'I', Grid.topright),
+    hs.hotkey.bind(mash, 'K', Grid.fullscreen),
+    hs.hotkey.bind(mash, 'H', Grid.leftchunk),
+    hs.hotkey.bind(mash, 'L', Grid.rightchunk),
+    hs.hotkey.bind(mash, 'M', Grid.bottomleft),
+    hs.hotkey.bind(mash, ',', Grid.bottomright)
+  }
+end
+
+function bind_for_dvorak(show_notification)
+  unbind()
+  if show_notification then
+    show_keyboard_notif("dvorak")
+  end
+
+  wm_bindings = {
+    hs.hotkey.bind(mash, 'F', Grid.topleft),
+    hs.hotkey.bind(mash, 'C', Grid.topright),
+    hs.hotkey.bind(mash, 'H', Grid.fullscreen),
+    hs.hotkey.bind(mash, 'D', Grid.leftchunk),
+    hs.hotkey.bind(mash, 'T', Grid.rightchunk),
+    hs.hotkey.bind(mash, 'B', Grid.bottomleft),
+    hs.hotkey.bind(mash, 'W', Grid.bottomright)
+  }
+end
+
+function usb_enumerate()
+  local usbs = hs.usb.attachedDevices()
+  for k,v in pairs(usbs) do
+    print(k .. " " .. v)    
+  end
+end
+
+
+local usbs = hs.usb.attachedDevices()
+
+
+usb_watch = function (item)
+  print "An USB change was detected."
+  local u = hs.usb.attachedDevices()
+  if #u>5  then
+    bind_for_dvorak(true)
+  else
+    bind_for_qwerty(true)
+  end
+end
+
+w = hs.usb.watcher.new(usb_watch)
+w:start()
+
+
+
+if #usbs>5 then
+  bind_for_dvorak(false)
+else
+  bind_for_qwerty(false)
+end
+
+hs.loadSpoon('SpeedMenu')
 
 -- Finally, show a notification that we finished loading the config successfully
-hs.notify.show("Hammerspoon", "", "Config loaded!", "")
-
+show_temporary_notification("Configuration", "Successfully loaded!")
