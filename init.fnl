@@ -3,9 +3,10 @@
         fadelogo (hs.loadSpoon "Fadelogo")
         speedmenu (hs.loadSpoon "SpeedMenu")
         mirowm (hs.loadSpoon "MiroWindowsManager")
+        emojis (hs.loadSpoon "Emojis")
+        
         bretzel (require "bretzel")
-        ;; emojis (hs.loadSpoon "Emojis")
-
+        
         ;;consts
         console hs.console
         hk hs.hotkey
@@ -94,9 +95,9 @@
             :left [cac :left]
             :fullscreen [cac :f]
         })
-        ;; (emojis.bindHotkeys
-        ;;     emojis
-        ;;     {:toggle  [cac, :e]})
+        (emojis.bindHotkeys
+            emojis
+            {:toggle  [cac, :e]})
 
         ;; all set!
         (show_temporary_notification "Configuration", "Successfully loaded!")
