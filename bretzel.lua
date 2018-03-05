@@ -85,7 +85,7 @@ local subfolders = { mp3 = "Musics",
 function Bretzel.boot(path, tagsAndAge, archiveAge, sortRoot)
 
   local function ScanFiles()
-    print("Bretzel waking up for " .. path)
+    print("************ Bretzel waking up for " .. path)
     ProcessDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
   end
 
@@ -106,20 +106,11 @@ function ProcessDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sor
       local fname = directory_root .. "/" .. basename
       local mode = hs.fs.attributes(fname, "mode")
 
-      if mode == "file" then
+      if basename == "Archive" and directory_root == scan_root then
+        -- do nothing
+      else
+        -- process every item as if they were files
         ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
-      elseif mode == "directory" then
-	print("Directory " .. fname)
-        if basename == "Archive" and directory_root == scan_root then
-          -- nope
-        else
-          local s,e = string.find(basename, "%.app$")
-          if s then
-            ProcessFile(fname, scan_root, fname, basename, tagsAndAge, archiveAge)
-          else
-            ProcessDirectory(fname, scan_root, tagsAndAge, archiveAge, true)
-          end
-        end
       end
     end
   end
@@ -152,7 +143,7 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
     end
 
     local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
-    print("We should archive to " .. archiveFolder)
+    print("Archive folder: " .. archiveFolder)
     dest = archiveFolder .. basename
     if dest ~= fname then
       hs.fs.mkdir(scan_root .. "/Archive")
