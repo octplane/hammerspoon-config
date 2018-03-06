@@ -1,5 +1,6 @@
 (let [
         ;; spoons
+        boo (hs.console.clearConsole)
         fadelogo (hs.loadSpoon "Fadelogo")
         speedmenu (hs.loadSpoon "SpeedMenu")
         mirowm (hs.loadSpoon "MiroWindowsManager")
@@ -16,7 +17,7 @@
         mashift [:cmd, :alt, :ctrl :shift]
         cac [:ctrl :alt :cmd]
 
-        ;; funcions
+        ;; functions
         show_temporary_notification (fn [subtitle infoText]
         (let [
             notification (hs.notify.new nil, {
@@ -70,7 +71,6 @@
 
         (set hs.window.animationDuration 0.3)
         ((. fadelogo :start) fadelogo)
-        (console.clearConsole)
         ;; Bind keys
         (each [key fun (pairs bindings)]
         (hk.bind
