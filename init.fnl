@@ -5,6 +5,8 @@
         speedmenu (hs.loadSpoon "SpeedMenu")
         mirowm (hs.loadSpoon "MiroWindowsManager")
         emojis (hs.loadSpoon "Emojis")
+        ;; hsearch (hs.loadSpoon "HSearch")
+        clock (hs.loadSpoon "MultiCountryMenubarClock")
         
         bretzel (require "bretzel")
         
@@ -13,9 +15,7 @@
         hk hs.hotkey
 
         ;; my configuration
-        mash [:cmd, :alt, :ctrl]
         mashift [:cmd, :alt, :ctrl :shift]
-        cac [:ctrl :alt :cmd]
 
         ;; functions
         show_temporary_notification (fn [subtitle infoText]
@@ -40,11 +40,12 @@
             (print "Reloading")
             (hs.reload)
             )
-        [mash "/"] (fn [] (hs.toggleConsole))
-        [mash :E] (fn []
+        [mashift "/"] (fn [] (hs.toggleConsole))
+        [mashift :E] (fn []
             (hs.applescript "tell application \"Finder\" to eject (every disk whose ejectable is true)")
             (hs.notify.show "Hammerspoon" "" "Ejected all disks" "")
             )
+        ;; [mashift "space"] (fn [] (hsearch.toggleShow))
         }
 
         bretzelConfig {
@@ -89,15 +90,16 @@
         )
         ;; Configure Miro WM
         (mirowm.bindHotkeys mirowm {
-            :up [cac :up]
-            :right [cac :right]
-            :down [cac :down]
-            :left [cac :left]
-            :fullscreen [cac :f]
+            :up [mashift :up]
+            :right [mashift :right]
+            :down [mashift :down]
+            :left [mashift :left]
+            :fullscreen [mashift :f]
         })
         (emojis.bindHotkeys
             emojis
-            {:toggle  [cac, :e]})
+            {:toggle  [mashift, :e]})
+        (. clock start)
 
         ;; all set!
         (show_temporary_notification "Configuration", "Successfully loaded!")
