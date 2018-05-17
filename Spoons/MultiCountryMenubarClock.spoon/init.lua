@@ -43,14 +43,20 @@ function obj:init()
   self.current_clock = 1
 
   print("mc MultiCountryMenubarClock starting")
+  update()
 end
 
 function obj:displayTime()
   local clock = self.clocks[self.current_clock]
   local tz = clock["clock"]
   local prefix = clock["prefix"]
+  local local_tz = get_timezone()
 
-  self.menubar:setTitle(prefix .. os.date("%H:%M", os.time() + tz - get_timezone()))
+  if tz == local_tz then
+    prefix = ""
+  end
+
+  self.menubar:setTitle(prefix .. os.date("%H:%M", os.time() + tz - local_tz))
 end
 
 return obj

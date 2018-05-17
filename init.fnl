@@ -2,11 +2,11 @@
         ;; spoons
         boo (hs.console.clearConsole)
         fadelogo (hs.loadSpoon "Fadelogo")
+        clock (hs.loadSpoon "MultiCountryMenubarClock")
         speedmenu (hs.loadSpoon "SpeedMenu")
         mirowm (hs.loadSpoon "MiroWindowsManager")
         emojis (hs.loadSpoon "Emojis")
         ;; hsearch (hs.loadSpoon "HSearch")
-        clock (hs.loadSpoon "MultiCountryMenubarClock")
         
         bretzel (require "bretzel")
         
@@ -99,7 +99,6 @@
         (emojis.bindHotkeys
             emojis
             {:toggle  [mashift, :e]})
-        (. clock start)
 
         ;; all set!
         (show_temporary_notification "Configuration", "Successfully loaded!")
