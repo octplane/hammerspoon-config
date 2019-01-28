@@ -5,7 +5,7 @@ obj.__index = obj
 obj.name = "MultiCountryMenubarClock"
 obj.version = "0.1"
 obj.author = "Pierre BAILLET <pierre@baillet.name>"
-obj.homepage = "https://github.com/Hammerspoon/Spoons"
+obj.homepage = "https://github.com/octplane/hammerspoon-config/tree/master/Spoons/MultiCountryMenubarClock.spoon"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 local function get_timezone()
@@ -13,10 +13,7 @@ local function get_timezone()
   return os.difftime(now, os.time(os.date("!*t", now)))
 end
 
-function obj:init()
-  local function update()
-    self:displayTime()
-  end
+function obj:init(params)
   local function toggle()
     self.current_clock = self.current_clock + 1
     if self.current_clock > #self.clocks then
@@ -25,25 +22,40 @@ function obj:init()
     self:displayTime()
   end
   self.menubar = hs.menubar.new()
-  self.timer = hs.timer.doEvery(2, update)
   self.menubar:setClickCallback(toggle)
 
-  self.clocks = {
-    {
-      clock = 3600,
-      prefix = "🇫🇷",
-      tooltip = "Home"
-    },
-    {
-      clock = -5 * 3600,
-      prefix = "🇺🇸",
-      tootip = "ET"
+  if params then
+    self.clocks = params
+  else
+    self.clocks = {
+      {
+        clock = 3600,
+        prefix = "🇫🇷"
+      },
+      {
+        clock = -5 * 3600,
+        prefix = "🇺🇸"
+      }
     }
-  }
-  self.current_clock = 1
+  end
 
-  print("mc MultiCountryMenubarClock starting")
-  update()
+  self.current_clock = 1
+  self:displayTime()
+end
+
+function obj:start()
+  local function update()
+    self:displayTime()
+  end
+  print("--- mc MultiCountryMenubarClock starting")
+  self.timer = hs.timer.doEvery(2, update)
+end
+
+function obj:stop()
+  if self.timer then
+    self.timer:stop()
+  end
+  self.timer = nil
 end
 
 function obj:displayTime()

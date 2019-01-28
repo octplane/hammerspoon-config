@@ -41,10 +41,11 @@
             (hs.reload)
             )
         [mashift "/"] (fn [] (hs.toggleConsole))
-        [mashift :E] (fn []
-            (hs.applescript "tell application \"Finder\" to eject (every disk whose ejectable is true)")
-            (hs.notify.show "Hammerspoon" "" "Ejected all disks" "")
-            )
+	[mashift :t] (fn []
+	  (hs.application.launchOrFocus "iTerm2")
+	  (hs.eventtap.keystroke {"shift", "cmd"} "e")
+	)
+	[mashift :s] toggle_sound_output
         ;; [mashift "space"] (fn [] (hsearch.toggleShow))
         }
 
@@ -99,6 +100,8 @@
         (emojis.bindHotkeys
             emojis
             {:toggle  [mashift, :e]})
+
+        (: clock :start)
 
         ;; all set!
         (show_temporary_notification "Configuration", "Successfully loaded!")

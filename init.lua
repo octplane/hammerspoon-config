@@ -16,13 +16,32 @@ local mycode_new =
 )
 f:close()
 
-function is_this_the_keyboard()
-  local usbs = hs.usb.attachedDevices()
-  for k, v in pairs(usbs) do
-    if v.productID == 8240 then
-      print("Detected Typematrix Keyboard")
-      return true
+-- Define audio device names for headphone/speaker switching
+displayPort = "DisplayPort"
+builtin = "Built-in Output"
+--speakerDevice = "Built-in Output"
+
+function toggle_audio_output()
+    local current = hs.audiodevice.defaultOutputDevice()
+    local speakers = hs.audiodevice.findOutputByName(builtin)
+    local screen = hs.audiodevice.findOutputByName(displayPort)
+
+    if not speakers or not screen then
+        hs.notify.new({title="Hammerspoon", informativeText="ERROR: Some audio devices missing", ""}):send()
+        return
     end
-  end
-  return false
+
+    if current:name() == speakers:name() then
+        screen:setDefaultOutputDevice()
+    else
+        speakers:setDefaultOutputDevice()
+    end
+    hs.notify.new({
+          title='Hammerspoon',
+            informativeText='Default output device: '..hs.audiodevice.defaultOutputDevice():name()
+        }):send()
 end
+
+hyper = {"⌘", "⌥", "⌃", "⇧"}
+hs.hotkey.bind(hyper, "s", toggle_audio_output)
+
