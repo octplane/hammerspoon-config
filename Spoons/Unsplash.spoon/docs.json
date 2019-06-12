@@ -1,0 +1,41 @@
+[
+  {
+    "Constant" : [
+
+    ],
+    "submodules" : [
+
+    ],
+    "Function" : [
+
+    ],
+    "Variable" : [
+
+    ],
+    "stripped_doc" : [
+
+    ],
+    "Deprecated" : [
+
+    ],
+    "desc" : "Download: [https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip](https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip)",
+    "type" : "Module",
+    "Constructor" : [
+
+    ],
+    "doc" : "Download: [https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip](https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip)",
+    "items" : [
+
+    ],
+    "Field" : [
+
+    ],
+    "Method" : [
+
+    ],
+    "Command" : [
+
+    ],
+    "name" : "Unsplash"
+  }
+]
