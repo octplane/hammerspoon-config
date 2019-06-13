@@ -15,25 +15,25 @@
     "stripped_doc" : [
 
     ],
+    "type" : "Module",
     "Deprecated" : [
 
     ],
-    "desc" : "Download: [https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip](https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip)",
-    "type" : "Module",
+    "desc" : "UNKNOWN DESC",
     "Constructor" : [
 
     ],
-    "doc" : "Download: [https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip](https:\/\/github.com\/Hammerspoon\/Spoons\/raw\/master\/Spoons\/Coucou.spoon.zip)",
-    "items" : [
+    "doc" : "",
+    "Method" : [
+
+    ],
+    "Command" : [
 
     ],
     "Field" : [
 
     ],
-    "Method" : [
-
-    ],
-    "Command" : [
+    "items" : [
 
     ],
     "name" : "Unsplash"
