@@ -3,24 +3,76 @@
 -- package.path = package.path .. ";" .. ZBS .. "/lualibs/?/?.lua;" .. ZBS .. "/lualibs/?.lua"
 -- package.cpath = package.cpath .. ";" .. ZBS .. "/bin/?.dylib;" .. ZBS .. "/bin/clibs53/?.dylib"
 -- require("mobdebug").start()
+hyper = {"⌘", "⌥", "⌃", "⇧"}
 
-local fennel = require "fennel"
-print("Loaded fennel")
-local f = io.open("init.fnl", "rb")
-local mycode_new =
-  fennel.eval(
-  f:read("*all"),
-  {
-    filename = "init.fnl"
-  }
+-- Reload Hotkey
+hs.hotkey.bind(
+  hyper,
+  "r",
+  function()
+    hs.console.clearConsole()
+    hs.openConsole(true)
+    print("Reloading configuration...")
+    hs.reload()
+  end
 )
-f:close()
+
+-- hs.logger.defaultLogLevel = "info"
+
+-- MultiCountryMenubarClock
+hs.loadSpoon("MultiCountryMenubarClock")
+spoon.MultiCountryMenubarClock:start()
+
+hs.loadSpoon("Bretzel")
+
+local bretzelConfig = {
+  Desktop = {
+    archiveAge = (86400 * 12),
+    sortRoot = false,
+    tagsAndAge = {
+      Orange = (86400 * 4),
+      Rouge = (86400 * 8)
+    },
+    path = os.getenv("HOME") .. "/Desktop"
+  },
+  Downloads = {
+    archiveAge = (86400 * 10),
+    sortRoot = true,
+    tagsAndAge = {
+      Vert = 86400,
+      Orange = 86400
+    },
+    path = os.getenv("HOME") .. "/Downloads"
+  }
+}
+
+for _, conf in pairs(bretzelConfig) do
+  spoon.Bretzel:boot(conf["path"], conf["tagsAndAge"], conf["archiveAge"], conf["sortRoot"])
+end
+
+function show_notification(subtitle, infotext)
+  local notification =
+    hs.notify.new(
+    nil,
+    {
+      title = "Hammerspoon",
+      subtitle = subtitle,
+      informativeText = infotext,
+      autoWithdraw = true,
+      hasActionButton = false
+    }
+  )
+  notification:send()
+  hs.timer.delayed.new(
+    5,
+    function()
+      notification:withdraw()
+    end
+  )
+end
 
 local toggleAudioOutput = require("audio_output_toggle")
 local hueBridge = require("hue_bridge")
-
-hyper = {"⌘", "⌥", "⌃", "⇧"}
-hs.hotkey.bind(hyper, "s", toggleAudioOutput)
 
 -- hueBridge:init()
 -- hueBridge:start()
@@ -74,11 +126,14 @@ local function toggleApp(appinfo)
       mainwin:application():unhide()
       mainwin:frontmostWindow():unminimize()
       mainwin:focus()
+    else
+      mainwin:application():hide()
     end
   end
 end
 
-local foo = 1
+-- StreamDeck
+
 local ix = 1
 
 function open_in_shell(what)
@@ -216,14 +271,6 @@ function cb(connected, deck)
 end
 hs.streamdeck.init(cb)
 
-hs.hotkey.bind(
-  hyper,
-  "a",
-  function()
-    toggleApp({name = "Slack", launch = true, kbd = nil, rect = nil})
-  end
-)
-
 function applicationWatcher(appName, eventType, appObject)
   if (eventType == hs.application.watcher.activated) then
     if streamDeck then
@@ -237,7 +284,57 @@ end
 appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
 
+--- Bind keys
+hs.hotkey.bind(hyper, "return", toggleAudioOutput)
+hs.hotkey.bind(
+  hyper,
+  "c",
+  function()
+    hs.toggleConsole()
+  end
+)
+
+hs.hotkey.bind(
+  hyper,
+  "a",
+  function()
+    toggleApp({name = "Slack", launch = true, kbd = nil, rect = nil})
+  end
+)
+
+hs.hotkey.bind(
+  hyper,
+  "d",
+  function()
+    toggleApp({name = "Drafts", launch = true, kbd = nil, rect = nil})
+  end
+)
+
 -- Unsplash
 local secret = require("secret")
-local usplash = hs.loadSpoon("Unsplash")
-usplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
+hs.loadSpoon("Unsplash")
+spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
+
+-- MiroWindowsManager
+hs.loadSpoon("MiroWindowsManager")
+spoon.MiroWindowsManager:bindHotkeys(
+  {
+    up = {hyper, "up"},
+    down = {hyper, "down"},
+    right = {hyper, "right"},
+    left = {hyper, "left"},
+    fullscreen = {hyper, "f"}
+  }
+)
+-- Emojis
+hs.loadSpoon("Emojis")
+spoon.Emojis:bindHotkeys(
+  {
+    toggle = {hyper, "e"}
+  }
+)
+
+print("Reload Completed")
+hs.closeConsole()
+
+show_notification("Configuration", "Successfully Loaded!")

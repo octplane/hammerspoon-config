@@ -17,7 +17,7 @@ obj.clientID = nil
 obj.baseFolder = nil
 
 function obj:init()
-    self.logger:i("Spoon loaded!")
+    self.logger.i("Spoon loaded!")
 end
 
 function obj:start(secret, base_folder)
@@ -63,6 +63,8 @@ function obj:fetchNewWallpaper()
                         end
                     end
                 )
+            else
+              self.logger.e("Unable to fetch images:" .. code)
             end
         end
     )

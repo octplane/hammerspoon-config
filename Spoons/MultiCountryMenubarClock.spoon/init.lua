@@ -7,6 +7,7 @@ obj.version = "0.1"
 obj.author = "Pierre BAILLET <pierre@baillet.name>"
 obj.homepage = "https://github.com/octplane/hammerspoon-config/tree/master/Spoons/MultiCountryMenubarClock.spoon"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
+obj.logger = hs.logger.new("MultiCountryMenubarClock")
 
 local function get_timezone()
   local now = os.time()
@@ -47,7 +48,7 @@ function obj:start()
   local function update()
     self:displayTime()
   end
-  print("--- mc MultiCountryMenubarClock starting")
+  self.logger.i("starting")
   self.timer = hs.timer.doEvery(2, update)
 end
 

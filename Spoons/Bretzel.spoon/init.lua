@@ -1,5 +1,15 @@
 -- Hazel like tag coloring feature
-Bretzel = {}
+local obj = {}
+
+obj.__index = obj
+-- Metadata
+obj.name = "Bretzel"
+obj.version = "0.1"
+obj.author = "Pierre Baillet <pierre@baillet.name>"
+obj.homepage = "https://github.com/Hammerspoon/Spoons"
+obj.license = "MIT - https://opensource.org/licenses/MIT"
+
+obj.logger = hs.logger.new("Bretzel")
 
 local fnutils = require "hs.fnutils"
 local fs = require "hs.fs"
@@ -80,19 +90,18 @@ local subfolders = {
   ttf = "Fonts"
 }
 
-local DEBUG = false
-function p(s)
-  if DEBUG then
-    print(s)
-  end
+function obj:init()
+  -- is the emojis file available?
+  print("Starting Bretzel Spoon...")
 end
 
 -- sortRoot: if set to true, will sort path
 --           if set to false, sort only inside the Archive folder
-function Bretzel.boot(path, tagsAndAge, archiveAge, sortRoot)
+function obj:boot(path, tagsAndAge, archiveAge, sortRoot)
+  self.logger.i("Starting for " .. path)
   local function ScanFiles()
-    p("************ Bretzel waking up for " .. path)
-    ProcessDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
+    self.logger.i("Waking up for " .. path)
+    self:processDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
   end
 
   bretzelTimer = hs.timer.new(100, ScanFiles)
@@ -100,7 +109,7 @@ function Bretzel.boot(path, tagsAndAge, archiveAge, sortRoot)
   ScanFiles()
 end
 
-function ProcessDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sortHere)
+function obj:processDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sortHere)
   -- every file in here should be relocated to directory_root .. subfolder
   local iter, dir_data = hs.fs.dir(directory_root)
   while true do
@@ -117,18 +126,18 @@ function ProcessDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sor
         -- do nothing
       else
         -- process every item as if they were files
-        ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
+        self:processFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
       end
     end
   end
 end
 
-function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge, archiveFolder)
+function obj:processFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge, archiveFolder)
   local now = os.time()
   local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
   local sf = "Default"
-  p(fname .. ", since:" .. since)
+  self.logger.i(fname .. ", since:" .. since)
 
   local s, e = string.find(basename, "%.[^%.]+$")
   if s then
@@ -138,7 +147,7 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
       sf = "Default"
     end
   else
-    p("No extensions for " .. basename)
+    self.logger.i("No extensions for " .. basename)
   end
 
   if since > archiveAge then
@@ -149,13 +158,13 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
     end
 
     local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
-    p("Archive folder: " .. archiveFolder)
+    self.logger.i("Archive folder: " .. archiveFolder)
     dest = archiveFolder .. basename
     if dest ~= fname then
       hs.fs.mkdir(scan_root .. "/Archive")
       hs.fs.mkdir(archiveFolder)
       -- move to archive
-      p(fname .. " -> " .. archiveFolder .. " | " .. basename)
+      self.logger.i(fname .. " -> " .. archiveFolder .. " | " .. basename)
       os.rename(fname, archiveFolder .. basename)
     else
       os.remove(fname)
@@ -163,7 +172,7 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
   else
     for tagName, duration in pairs(tagsAndAge) do
       if since > duration then
-        p(fname .. "(since:" .. since .. ", archiveAge:" .. archiveAge .. "): " .. tagName)
+        self.logger.i(fname .. "(since:" .. since .. ", archiveAge:" .. archiveAge .. "): " .. tagName)
         tag = tagName
       end
     end
@@ -183,4 +192,4 @@ function ProcessFile(directory_root, scan_root, fname, basename, tagsAndAge, arc
   end
 end
 
-return Bretzel
+return obj
