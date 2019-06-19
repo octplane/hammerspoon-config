@@ -1,0 +1,85 @@
+[
+  {
+    "Constant" : [
+
+    ],
+    "submodules" : [
+
+    ],
+    "Function" : [
+
+    ],
+    "Variable" : [
+
+    ],
+    "stripped_doc" : [
+
+    ],
+    "Deprecated" : [
+
+    ],
+    "type" : "Module",
+    "desc" : "Let users choose emojis by name\/keyword",
+    "Constructor" : [
+
+    ],
+    "doc" : "Let users choose emojis by name\/keyword",
+    "Method" : [
+      {
+        "doc" : "Binds hotkeys for Emojis\n\nParameters:\n * mapping - A table containing hotkey modifier\/key details for the following items:\n  * toggle - This will toggle the emoji chooser\n\nReturns:\n * The Emojis object",
+        "stripped_doc" : [
+          "Binds hotkeys for Emojis",
+          ""
+        ],
+        "desc" : "Binds hotkeys for Emojis",
+        "parameters" : [
+          " * mapping - A table containing hotkey modifier\/key details for the following items:",
+          "  * toggle - This will toggle the emoji chooser",
+          ""
+        ],
+        "notes" : [
+
+        ],
+        "signature" : "Emojis:bindHotkeys(mapping)",
+        "type" : "Method",
+        "returns" : [
+          " * The Emojis object"
+        ],
+        "def" : "Emojis:bindHotkeys(mapping)",
+        "name" : "bindHotkeys"
+      }
+    ],
+    "Field" : [
+
+    ],
+    "items" : [
+      {
+        "doc" : "Binds hotkeys for Emojis\n\nParameters:\n * mapping - A table containing hotkey modifier\/key details for the following items:\n  * toggle - This will toggle the emoji chooser\n\nReturns:\n * The Emojis object",
+        "stripped_doc" : [
+          "Binds hotkeys for Emojis",
+          ""
+        ],
+        "desc" : "Binds hotkeys for Emojis",
+        "parameters" : [
+          " * mapping - A table containing hotkey modifier\/key details for the following items:",
+          "  * toggle - This will toggle the emoji chooser",
+          ""
+        ],
+        "notes" : [
+
+        ],
+        "signature" : "Emojis:bindHotkeys(mapping)",
+        "type" : "Method",
+        "returns" : [
+          " * The Emojis object"
+        ],
+        "def" : "Emojis:bindHotkeys(mapping)",
+        "name" : "bindHotkeys"
+      }
+    ],
+    "Command" : [
+
+    ],
+    "name" : "Emojis"
+  }
+]

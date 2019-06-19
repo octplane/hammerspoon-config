@@ -164,7 +164,8 @@ function obj:bindHotkeys(mapping)
   hs.inspect(mapping)
   print("Bind Hotkeys for Miro's Windows Manager")
 
-  hs.hotkey.bind(mapping.down[1], mapping.down[2], function ()
+  hs.hotkey.bind(mapping.down[1], mapping.down[2], "Move Window down",
+  function ()
     self._pressed.down = true
     if self._pressed.up then 
       self:_fullDimension('h')
@@ -178,7 +179,7 @@ function obj:bindHotkeys(mapping)
     self._pressed.down = false
   end)
 
-  hs.hotkey.bind(mapping.right[1], mapping.right[2], function ()
+  hs.hotkey.bind(mapping.right[1], mapping.right[2], "Move Window right", function ()
     self._pressed.right = true
     if self._pressed.left then 
       self:_fullDimension('w')
@@ -192,7 +193,8 @@ function obj:bindHotkeys(mapping)
     self._pressed.right = false
   end)
 
-  hs.hotkey.bind(mapping.left[1], mapping.left[2], function ()
+  hs.hotkey.bind(mapping.left[1], mapping.left[2], "Move Window left",
+  function ()
     self._pressed.left = true
     if self._pressed.right then 
       self:_fullDimension('w')
@@ -206,7 +208,8 @@ function obj:bindHotkeys(mapping)
     self._pressed.left = false
   end)
 
-  hs.hotkey.bind(mapping.up[1], mapping.up[2], function ()
+  hs.hotkey.bind(mapping.up[1], mapping.up[2], "Move Window up",
+  function ()
     self._pressed.up = true
     if self._pressed.down then 
         self:_fullDimension('h')
@@ -220,7 +223,7 @@ function obj:bindHotkeys(mapping)
     self._pressed.up = false
   end)
 
-  hs.hotkey.bind(mapping.fullscreen[1], mapping.fullscreen[2], function ()
+  hs.hotkey.bind(mapping.fullscreen[1], mapping.fullscreen[2], "Fullscreen Window", function ()
     self:_nextFullScreenStep()
   end)
 

@@ -9,6 +9,7 @@ hyper = {"⌘", "⌥", "⌃", "⇧"}
 hs.hotkey.bind(
   hyper,
   "r",
+  "Reload Hammerspoon",
   function()
     hs.console.clearConsole()
     hs.openConsole(true)
@@ -285,10 +286,11 @@ appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
 
 --- Bind keys
-hs.hotkey.bind(hyper, "return", toggleAudioOutput)
+hs.hotkey.bind(hyper, "return", "Toggle Audio Output", toggleAudioOutput)
 hs.hotkey.bind(
   hyper,
   "c",
+  "Toggle Console",
   function()
     hs.toggleConsole()
   end
@@ -297,6 +299,7 @@ hs.hotkey.bind(
 hs.hotkey.bind(
   hyper,
   "a",
+  "Slack",
   function()
     toggleApp({name = "Slack", launch = true, kbd = nil, rect = nil})
   end
@@ -304,11 +307,39 @@ hs.hotkey.bind(
 
 hs.hotkey.bind(
   hyper,
+  "s",
+  "Spotify",
+  function()
+    toggleApp({name = "Spotify", launch = true, kbd = nil, rect = nil})
+  end
+)
+
+hs.hotkey.bind(
+  hyper,
   "d",
+  "Drafts",
   function()
     toggleApp({name = "Drafts", launch = true, kbd = nil, rect = nil})
   end
 )
+hs.hotkey.bind(
+  hyper,
+  "q",
+  "Telegram",
+  function()
+    toggleApp({name = "Telegram", launch = true, kbd = nil, rect = nil})
+  end
+)
+
+hs.hotkey.bind(
+  hyper,
+  "w",
+  "Keybase",
+  function()
+    toggleApp({name = "Keybase", launch = true, kbd = nil, rect = nil})
+  end
+)
+
 
 -- Unsplash
 local secret = require("secret")
@@ -333,6 +364,23 @@ spoon.Emojis:bindHotkeys(
     toggle = {hyper, "e"}
   }
 )
+
+--
+hs.loadSpoon("URLDispatcher")
+
+u = spoon.URLDispatcher
+u.logger.log_level = "debug"
+u.url_patterns = {
+  { "https?://trello.com","org.mozilla.firefox" }
+  ,{ "https?://github.com", "org.mozilla.firefox" }
+  ,{ "https://www.youtube.com", "com.apple.Safari"}
+  ,{ "https://youtube.com", "com.apple.Safari"}
+}
+u.default_handler = "org.mozilla.firefox"
+u:start()
+
+
+hs.hotkey.showHotkeys(hyper, "h")
 
 print("Reload Completed")
 hs.closeConsole()
