@@ -75,6 +75,16 @@ end
 local toggleAudioOutput = require("audio_output_toggle")
 local hueBridge = require("hue_bridge")
 
+function toggleInputVolume()
+  local currentInput = hs.audiodevice.defaultInputDevice()
+  local v = currentInput:inputVolume()
+  if v < 50 then 
+    currentInput:setInputVolume(66)
+  else
+    currentInput:setInputVolume(0)
+  end
+end
+
 -- hueBridge:init()
 -- hueBridge:start()
 -- curl http://192.168.1.38/api/tE9SjzBRdFpFQXt5tfwRkxJfjbXpa2cG9M2hR2T3/lights | jq "to_entries[] | {k:.key,n:.value.name}"
@@ -269,8 +279,9 @@ function cb(connected, deck)
   deck:buttonCallback(deckClicked)
   drawDeck(deck)
   streamDeck = deck
+  configureHotKeys()
 end
-hs.streamdeck.init(cb)
+-- hs.streamdeck.init(cb)
 
 function applicationWatcher(appName, eventType, appObject)
   if (eventType == hs.application.watcher.activated) then
@@ -287,6 +298,7 @@ appWatcher:start()
 
 --- Bind keys
 hs.hotkey.bind(hyper, "return", "Toggle Audio Output", toggleAudioOutput)
+hs.hotkey.bind(hyper, "\\", "Toggle Input Volume", toggleInputVolume)
 hs.hotkey.bind(
   hyper,
   "c",
@@ -340,6 +352,28 @@ hs.hotkey.bind(
   end
 )
 
+ix = 1
+
+function bindAndDock(name, key, bundleId)
+  hs.hotkey.bind(hyper, key, name, 
+  function()
+    toggleApp({name = name, launch = true, kbd = nil, rect = nil})
+  end
+  )
+  icon = hs.image.imageFromAppBundle(bundleId)
+  streamDeck:setButtonImage(ix, icon)
+
+  ix = ix + 1
+  if ix == 6 then
+    -- stop adding icons
+  end
+end
+
+function configureHotKeys()
+  bindAndDock("Trello", "z", "com.fluidapp.FluidApp2.Trello")
+end
+  
+
 
 -- Unsplash
 local secret = require("secret")
@@ -371,13 +405,21 @@ hs.loadSpoon("URLDispatcher")
 u = spoon.URLDispatcher
 u.logger.log_level = "debug"
 u.url_patterns = {
-  { "https?://trello.com","org.mozilla.firefox" }
-  ,{ "https?://github.com", "org.mozilla.firefox" }
+  -- { "https?://trello.com","com.fluidapp.FluidApp2.Trello" }
+  { "https?://github.com", "org.mozilla.firefox" }
   ,{ "https://www.youtube.com", "com.apple.Safari"}
   ,{ "https://youtube.com", "com.apple.Safari"}
 }
 u.default_handler = "org.mozilla.firefox"
 u:start()
+
+-- 
+-- kubernetes helper for stream deck
+--k_watcher = hs.pathwatcher.new("/Users/pierrebaillet/.kube/config", function(path, flags)
+--end)
+
+--k_watched:start()
+--
 
 
 hs.hotkey.showHotkeys(hyper, "h")
@@ -386,3 +428,4 @@ print("Reload Completed")
 hs.closeConsole()
 
 show_notification("Configuration", "Successfully Loaded!")
+hs.dockicon.hide()

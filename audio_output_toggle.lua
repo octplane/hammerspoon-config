@@ -1,27 +1,48 @@
-function toggle_audio_output()
-    -- Define audio device names for headphone/speaker switching
-    displayPort = "DisplayPort"
-    builtin = "Built-in Output"
-    headphones = "Headphone port"
-    local current = hs.audiodevice.defaultOutputDevice()
-    local speakers = hs.audiodevice.findOutputByName(builtin) or hs.audiodevice.findOutputByName(headphones)
-    local screen = hs.audiodevice.findOutputByName(displayPort)
+function toggle_output(out)
+  if out ==  nil then
+    return
+  end
 
-    if not speakers or not screen then
-        hs.notify.new({title="Hammerspoon", informativeText="ERROR: Some audio devices are missing.", ""}):send()
-        return
-    end
+  local uid = out["uid"]
+  local current = hs.audiodevice.defaultOutputDevice()
+  if current:uid() == uid then
+    return
+  end
 
-    if current:name() == speakers:name() then
-        screen:setDefaultOutputDevice()
-    else
-        speakers:setDefaultOutputDevice()
-    end
-    hs.notify.new({
-          title='Hammerspoon',
-            informativeText='Default output device: '..hs.audiodevice.defaultOutputDevice():name()
-        }):send()
+  local device = hs.audiodevice.findOutputByUID(uid)
+  if uid == nil then
+    return
+  end
+
+  device:setDefaultOutputDevice()
+  hs.notify.new({
+      title='Hammerspoon',
+      informativeText='Default output device: '.. out['text']
+  }):send()
 end
 
-return toggle_audio_output
+local chooser = hs.chooser.new(toggle_output)
+
+function get_outputs()
+  local devices = hs.audiodevice.allOutputDevices()
+  local local_outputs = {}
+  for d=1, #devices do
+    local device = devices[d]
+    local_outputs[#local_outputs+1] = {
+      text=device:name(),
+      uid=device:uid()
+    }
+  end
+  hs.inspect.inspect(local_outputs)
+  return local_outputs
+end
+
+function toggle_audio_chooser()
+  local choices = get_outputs()
+  chooser:choices(choices)
+  chooser:show()
+end
+
+
+return toggle_audio_chooser
 
