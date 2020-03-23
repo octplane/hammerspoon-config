@@ -1,0 +1,406 @@
+[
+  {
+    "Constant" : [
+
+    ],
+    "submodules" : [
+
+    ],
+    "Function" : [
+
+    ],
+    "Variable" : [
+      {
+        "desc" : "Flag for darkmode status, 'false' means darkmode off, 'true' means on.",
+        "stripped_doc" : [
+          "Flag for darkmode status, 'false' means darkmode off, 'true' means on."
+        ],
+        "parameters" : [
+
+        ],
+        "doc" : "Flag for darkmode status, 'false' means darkmode off, 'true' means on.",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.darkModeIsOn",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "def" : "AfterDark.darkModeIsOn",
+        "name" : "darkModeIsOn"
+      },
+      {
+        "desc" : "Set to greater than 1 so there is a slight delay before overlay starts fading out",
+        "stripped_doc" : [
+          "Set to greater than 1 so there is a slight delay before overlay starts fading out",
+          "Probably not the best way to do this though"
+        ],
+        "parameters" : [
+
+        ],
+        "doc" : "Set to greater than 1 so there is a slight delay before overlay starts fading out\nProbably not the best way to do this though",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.overlayTransparency",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "def" : "AfterDark.overlayTransparency",
+        "name" : "overlayTransparency"
+      }
+    ],
+    "stripped_doc" : [
+
+    ],
+    "Deprecated" : [
+
+    ],
+    "desc" : "Darkmode menubar toggle",
+    "type" : "Module",
+    "Constructor" : [
+
+    ],
+    "items" : [
+      {
+        "desc" : "Flag for darkmode status, 'false' means darkmode off, 'true' means on.",
+        "stripped_doc" : [
+          "Flag for darkmode status, 'false' means darkmode off, 'true' means on."
+        ],
+        "parameters" : [
+
+        ],
+        "doc" : "Flag for darkmode status, 'false' means darkmode off, 'true' means on.",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.darkModeIsOn",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "def" : "AfterDark.darkModeIsOn",
+        "name" : "darkModeIsOn"
+      },
+      {
+        "desc" : "Set to greater than 1 so there is a slight delay before overlay starts fading out",
+        "stripped_doc" : [
+          "Set to greater than 1 so there is a slight delay before overlay starts fading out",
+          "Probably not the best way to do this though"
+        ],
+        "parameters" : [
+
+        ],
+        "doc" : "Set to greater than 1 so there is a slight delay before overlay starts fading out\nProbably not the best way to do this though",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.overlayTransparency",
+        "type" : "Variable",
+        "returns" : [
+
+        ],
+        "def" : "AfterDark.overlayTransparency",
+        "name" : "overlayTransparency"
+      },
+      {
+        "desc" : "creates overlay that will be used during transition",
+        "stripped_doc" : [
+          "creates overlay that will be used during transition",
+          "This function checks the screen resolution in case it has",
+          "changed, and generates new rect if it has",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "creates overlay that will be used during transition\nThis function checks the screen resolution in case it has\nchanged, and generates new rect if it has\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:createOverlay()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:createOverlay()",
+        "name" : "createOverlay"
+      },
+      {
+        "desc" : "Stops the spoon and removes it from menubar",
+        "stripped_doc" : [
+          "Stops the spoon and removes it from menubar",
+          "Cleans up any variables",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Stops the spoon and removes it from menubar\nCleans up any variables\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.disable()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark.disable()",
+        "name" : "disable"
+      },
+      {
+        "desc" : "Initialize our AfterDark spoon",
+        "stripped_doc" : [
+          "Initialize our AfterDark spoon",
+          "- Deletes any existing menubars",
+          "- Deletes any leftover overlays",
+          "- Creates a new rect with current screenSize",
+          "- Sets rect properties",
+          "- Creates menubar item, adds it to menubar",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Initialize our AfterDark spoon\n- Deletes any existing menubars\n- Deletes any leftover overlays\n- Creates a new rect with current screenSize\n- Sets rect properties\n- Creates menubar item, adds it to menubar\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:init()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:init()",
+        "name" : "init"
+      },
+      {
+        "desc" : "Start",
+        "stripped_doc" : [
+          "Start",
+          ""
+        ],
+        "parameters" : [
+          " * options - An optional table containing spoon configuration options",
+          ""
+        ],
+        "doc" : "Start\n\nParameters:\n * options - An optional table containing spoon configuration options\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:start()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:start()",
+        "name" : "start"
+      },
+      {
+        "desc" : "Turn the overlay off, delete any timers",
+        "stripped_doc" : [
+          "Turn the overlay off, delete any timers",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Turn the overlay off, delete any timers\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:stop()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:stop()",
+        "name" : "stop"
+      },
+      {
+        "desc" : "Toggles dark mode while fading a rect that covers the whole screen",
+        "stripped_doc" : [
+          "Toggles dark mode while fading a rect that covers the whole screen",
+          "from black to completely transparent",
+          "This is done because there is sometimes a display with darkMode switch",
+          "in apps like safari",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Toggles dark mode while fading a rect that covers the whole screen\nfrom black to completely transparent\nThis is done because there is sometimes a display with darkMode switch\nin apps like safari\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:toggleDarkMode()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:toggleDarkMode()",
+        "name" : "toggleDarkMode"
+      }
+    ],
+    "Method" : [
+      {
+        "desc" : "creates overlay that will be used during transition",
+        "stripped_doc" : [
+          "creates overlay that will be used during transition",
+          "This function checks the screen resolution in case it has",
+          "changed, and generates new rect if it has",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "creates overlay that will be used during transition\nThis function checks the screen resolution in case it has\nchanged, and generates new rect if it has\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:createOverlay()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:createOverlay()",
+        "name" : "createOverlay"
+      },
+      {
+        "desc" : "Toggles dark mode while fading a rect that covers the whole screen",
+        "stripped_doc" : [
+          "Toggles dark mode while fading a rect that covers the whole screen",
+          "from black to completely transparent",
+          "This is done because there is sometimes a display with darkMode switch",
+          "in apps like safari",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Toggles dark mode while fading a rect that covers the whole screen\nfrom black to completely transparent\nThis is done because there is sometimes a display with darkMode switch\nin apps like safari\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:toggleDarkMode()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:toggleDarkMode()",
+        "name" : "toggleDarkMode"
+      },
+      {
+        "desc" : "Initialize our AfterDark spoon",
+        "stripped_doc" : [
+          "Initialize our AfterDark spoon",
+          "- Deletes any existing menubars",
+          "- Deletes any leftover overlays",
+          "- Creates a new rect with current screenSize",
+          "- Sets rect properties",
+          "- Creates menubar item, adds it to menubar",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Initialize our AfterDark spoon\n- Deletes any existing menubars\n- Deletes any leftover overlays\n- Creates a new rect with current screenSize\n- Sets rect properties\n- Creates menubar item, adds it to menubar\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:init()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:init()",
+        "name" : "init"
+      },
+      {
+        "desc" : "Start",
+        "stripped_doc" : [
+          "Start",
+          ""
+        ],
+        "parameters" : [
+          " * options - An optional table containing spoon configuration options",
+          ""
+        ],
+        "doc" : "Start\n\nParameters:\n * options - An optional table containing spoon configuration options\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:start()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:start()",
+        "name" : "start"
+      },
+      {
+        "desc" : "Turn the overlay off, delete any timers",
+        "stripped_doc" : [
+          "Turn the overlay off, delete any timers",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Turn the overlay off, delete any timers\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark:stop()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark:stop()",
+        "name" : "stop"
+      },
+      {
+        "desc" : "Stops the spoon and removes it from menubar",
+        "stripped_doc" : [
+          "Stops the spoon and removes it from menubar",
+          "Cleans up any variables",
+          ""
+        ],
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Stops the spoon and removes it from menubar\nCleans up any variables\n\nParameters:\n * None\n\nReturns:\n * None",
+        "notes" : [
+
+        ],
+        "signature" : "AfterDark.disable()",
+        "type" : "Method",
+        "returns" : [
+          " * None"
+        ],
+        "def" : "AfterDark.disable()",
+        "name" : "disable"
+      }
+    ],
+    "Command" : [
+
+    ],
+    "Field" : [
+
+    ],
+    "doc" : "Darkmode menubar toggle",
+    "name" : "AfterDark"
+  }
+]

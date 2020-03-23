@@ -296,9 +296,41 @@ end
 appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
 
+function changeVolume(diff)
+  return function()
+    local current = hs.audiodevice.defaultOutputDevice():volume()
+    local new = math.min(100, math.max(0, math.floor(current + diff)))
+    if new > 0 then
+      hs.audiodevice.defaultOutputDevice():setMuted(false)
+    end
+    hs.alert.closeAll(0.0)
+    hs.alert.show("Volume " .. new .. "%", {}, 0.5)
+    hs.audiodevice.defaultOutputDevice():setVolume(new)
+  end
+end
+
+hs.hotkey.bind(hyper, "[", nil, function()
+
+  if hs.spotify.isPlaying() then
+    hs.spotify.volumeDown()
+  else
+    changeVolume(-3)
+  end
+end)
+
+hs.hotkey.bind(hyper, "]", nil, function()
+
+  if hs.spotify.isPlaying() then
+    hs.spotify.volumeUp()
+  else
+    changeVolume(3)
+  end
+end)
+
+
+
 --- Bind keys
 hs.hotkey.bind(hyper, "return", "Toggle Audio Output", toggleAudioOutput)
-hs.hotkey.bind(hyper, "\\", "Toggle Input Volume", toggleInputVolume)
 hs.hotkey.bind(
   hyper,
   "c",
@@ -351,6 +383,16 @@ hs.hotkey.bind(
     toggleApp({name = "Keybase", launch = true, kbd = nil, rect = nil})
   end
 )
+
+hs.hotkey.bind(
+  hyper,
+  "m",
+  "Marta",
+  function()
+    toggleApp({name = "Marta", launch = true, kbd = nil, rect = nil})
+  end
+)
+
 
 ix = 1
 
@@ -409,6 +451,7 @@ u.url_patterns = {
   { "https?://github.com", "org.mozilla.firefox" }
   ,{ "https://www.youtube.com", "com.apple.Safari"}
   ,{ "https://youtube.com", "com.apple.Safari"}
+  ,{ "https://datadoghq.atlassian.net", "com.brave.Browser"}
 }
 u.default_handler = "org.mozilla.firefox"
 u:start()
@@ -420,6 +463,9 @@ u:start()
 
 --k_watched:start()
 --
+--
+--
+hs.loadSpoon("AfterDark"):start({showMenu = true})
 
 
 hs.hotkey.showHotkeys(hyper, "h")
