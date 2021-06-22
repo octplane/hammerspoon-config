@@ -187,7 +187,10 @@ function obj:processFile(directory_root, scan_root, fname, basename, tagsAndAge,
       end
       newTags = {}
       newTags[1] = tag
-      hs.fs.tagsSet(fname, newTags)
+      local ok, err = pcall(hs.fs.tagsSet, fname, newTags)
+      if not ok then
+        print("Unable to set tag on " .. fname .. ": " .. err)
+      end
     end
   end
 end
