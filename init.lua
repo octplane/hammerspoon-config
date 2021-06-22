@@ -418,9 +418,13 @@ end
 
 
 -- Unsplash
-local secret = require("secret")
-hs.loadSpoon("Unsplash")
-spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
+local status, secret = pcall(require, "secret")
+if(status) then
+  hs.loadSpoon("Unsplash")
+  spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
+else
+  print("UNSPLASH secret is missing, not starting...")
+end
 
 -- MiroWindowsManager
 hs.loadSpoon("MiroWindowsManager")
