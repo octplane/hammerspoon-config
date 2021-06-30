@@ -97,6 +97,11 @@ local function playKb(kbd)
   end
 end
 
+
+--  https://github.com/asmagill/hammerspoon_asm
+local hasSpaces, spaces = pcall(require, "hs.spaces")
+
+
 -- Bring focus to the specified app, maybe launch it.
 -- Maybe bring up an alternate and focus or launch it.
 local function toggleApp(appinfo)
@@ -121,13 +126,20 @@ local function toggleApp(appinfo)
         end
       end
       if appinfo.kbd ~= nil then
-	playKb(appinfo.kbd)
+        playKb(appinfo.kbd)
       end
     end
     return
   end
   -- App is running, let's focus it.
   local mainwin = app:mainWindow()
+  if hasSpaces then
+    if appinfo.moveToCurrentSpace then
+     spaces.moveWindowToSpace(mainwin, spaces.focusedSpace())
+    end
+  else
+    print("unable to move window to current space: no Spaces extension available")
+  end
   if mainwin then
     if mainwin ~= hs.window.focusedWindow() then
       mainwin:application():activate(true)
@@ -138,6 +150,7 @@ local function toggleApp(appinfo)
       mainwin:application():hide()
     end
   end
+
 end
 
 function applicationWatcher(appName, eventType, appObject)
@@ -230,7 +243,7 @@ hs.hotkey.bind(
   "d",
   "Drafts",
   function()
-    toggleApp({name = "Drafts", launch = true, kbd = nil, rect = nil})
+    toggleApp({name = "Drafts", launch = true, kbd = nil, rect = nil, moveToCurrentSpace= true})
   end
 )
 hs.hotkey.bind(
@@ -254,9 +267,9 @@ hs.hotkey.bind(
 hs.hotkey.bind(
   hyper,
   "m",
-  "Marta",
+  "Coaster",
   function()
-    toggleApp({name = "Marta", launch = true, kbd = nil, rect = nil})
+    toggleApp({name = "Coaster", launch = true, kbd = nil, rect = nil, moveToCurrentSpace= true})
   end
 )
 
@@ -486,9 +499,6 @@ u.url_patterns = {
 u.default_handler = "org.mozilla.firefox"
 u:start()
 
---
---
---
 hs.loadSpoon("AfterDark"):start({showMenu = true})
 
 
