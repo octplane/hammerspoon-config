@@ -206,8 +206,6 @@ function obj:start(options)
         obj.menubar:setClickCallback(obj.toggleDarkMode)
         obj.menubar:setTooltip('AfterDark')
     end
-
-    return
 end
 
   --- AfterDark:stop()

@@ -3,59 +3,41 @@
 -- package.path = package.path .. ";" .. ZBS .. "/lualibs/?/?.lua;" .. ZBS .. "/lualibs/?.lua"
 -- package.cpath = package.cpath .. ";" .. ZBS .. "/bin/?.dylib;" .. ZBS .. "/bin/clibs53/?.dylib"
 -- require("mobdebug").start()
-hyper = {"⌘", "⌥", "⌃", "⇧"}
 
-function reloadCommand()
+
+
+function ReloadHammerSpoon()
   hs.console.clearConsole()
   hs.openConsole(true)
   print("Reloading configuration...")
   hs.reload()
 end
 
--- Reload Hotkey
-hs.hotkey.bind(
-  hyper,
-  "r",
-  "Reload Hammerspoon",
-  reloadCommand
-)
+HYPER = { "cmd", "alt", "control", "shift" }
 
--- hs.logger.defaultLogLevel = "info"
 
--- MultiCountryMenubarClock
--- hs.loadSpoon("MultiCountryMenubarClock")
--- spoon.MultiCountryMenubarClock:start()
+hs.loadSpoon("AwesomeKeys")
+local keys = spoon.AwesomeKeys
+-- hbb = keys:createHyperBindings(
+--   {
+--     mods = HYPER,
+--     hyperKey = "pageup",
+--     backgroundColor = { hex = "#000", alpha = 0.9 },
+--     textColor = { hex = "#FFF", alpha = 0.8 },
+--     modsColor = { hex = "#FA58B6" },
+--     keyColor = { hex = "#f5d76b" },
+--     fontFamily = "JetBrainsMono Nerd Font Mono",
+--     separator = "(✌ ﾟ ∀ ﾟ)☞ –––",
+--     position = { x = "center", y = "bottom" }
+--   }
+-- )
 
-hs.loadSpoon("Bretzel")
 
-local bretzelConfig = {
-  Desktop = {
-    archiveAge = (86400 * 12),
-    sortRoot = false,
-    tagsAndAge = {
-      Orange = (86400 * 4),
-      Rouge = (86400 * 8)
-    },
-    path = os.getenv("HOME") .. "/Desktop"
-  },
-  Downloads = {
-    archiveAge = (86400 * 10),
-    sortRoot = true,
-    tagsAndAge = {
-      Vert = 86400,
-      Orange = 86400
-    },
-    path = os.getenv("HOME") .. "/Downloads"
-  }
-}
-
-for _, conf in pairs(bretzelConfig) do
-  spoon.Bretzel:boot(conf["path"], conf["tagsAndAge"], conf["archiveAge"], conf["sortRoot"])
-end
+require("bretzel_conf")
 
 function show_notification(subtitle, infotext)
   local notification =
-    hs.notify.new(
+  hs.notify.new(
     nil,
     {
       title = "Hammerspoon",
@@ -79,7 +61,7 @@ local toggleAudioOutput = require("audio_output_toggle")
 function toggleInputVolume()
   local currentInput = hs.audiodevice.defaultInputDevice()
   local v = currentInput:inputVolume()
-  if v < 50 then 
+  if v < 50 then
     currentInput:setInputVolume(66)
   else
     currentInput:setInputVolume(0)
@@ -89,6 +71,8 @@ end
 -- Plays an array of keystroke events.
 local function playKb(kbd)
   for _, v in pairs(kbd) do
+    print(v)
+    print(#v)
     if #v == 2 then
       hs.eventtap.keyStroke(v[1], v[2], 10000)
     elseif #v == 1 then
@@ -97,14 +81,32 @@ local function playKb(kbd)
   end
 end
 
-
 --  https://github.com/asmagill/hammerspoon_asm
 local hasSpaces, spaces = pcall(require, "hs.spaces")
 
+function ZoomZoom()
+  if hs.window.focusedWindow() then
+    local win    = hs.window.frontmostWindow()
+    local id     = win:id()
+    local screen = win:screen()
+    local grid   = hs.grid.getGrid(screen)
+
+    local w = math.floor(grid.w / 3)
+    local h = math.floor(grid.h / 3)
+    local x = math.floor(grid.w / 2 - grid.w / 6)
+
+    local cell = x .. ",0 " .. w .. "x" .. h
+    print(cell)
+
+
+    hs.grid.set(win, cell, screen)
+  end
+end
 
 -- Bring focus to the specified app, maybe launch it.
 -- Maybe bring up an alternate and focus or launch it.
-local function toggleApp(appinfo)
+function toggleApp(appinfo)
+  print("Looking for " .. appinfo.name)
   local app = hs.appfinder.appFromName(appinfo.name)
   if not app then
     -- App isn't running.
@@ -135,7 +137,7 @@ local function toggleApp(appinfo)
   local mainwin = app:mainWindow()
   if hasSpaces then
     if appinfo.moveToCurrentSpace then
-     spaces.moveWindowToSpace(mainwin, spaces.focusedSpace())
+      spaces.moveWindowToSpace(mainwin, spaces.focusedSpace())
     end
   else
     print("unable to move window to current space: no Spaces extension available")
@@ -144,15 +146,16 @@ local function toggleApp(appinfo)
     if mainwin ~= hs.window.focusedWindow() then
       mainwin:application():activate(true)
       mainwin:application():unhide()
-      mainwin:frontmostWindow():unminimize()
       mainwin:focus()
     else
       mainwin:application():hide()
     end
+  else
+    app:activate()
   end
-
 end
 
+---@diagnostic disable-next-line: unused-local
 function applicationWatcher(appName, eventType, appObject)
   if (eventType == hs.application.watcher.activated) then
     if streamDeck then
@@ -163,8 +166,8 @@ function applicationWatcher(appName, eventType, appObject)
   end
 end
 
-appWatcher = hs.application.watcher.new(applicationWatcher)
-appWatcher:start()
+AppWatcher = hs.application.watcher.new(applicationWatcher)
+AppWatcher:start()
 
 function changeVolume(diff)
   return function()
@@ -179,40 +182,138 @@ function changeVolume(diff)
   end
 end
 
-hs.hotkey.bind(hyper, "[", nil, function()
-
+function VolumeDown()
   if hs.spotify.isPlaying() then
     hs.spotify.volumeDown()
   else
     changeVolume(-3)
   end
-end)
+end
 
-hs.hotkey.bind(hyper, "]", nil, function()
-
+function VolumeUp()
   if hs.spotify.isPlaying() then
     hs.spotify.volumeUp()
   else
     changeVolume(3)
   end
-end)
+end
 
+function PlayPause()
+  hs.eventtap.event.newSystemKeyEvent("PLAY", true):post()
+end
 
-function consoleCommand()
+-- hbb:setGlobalBindings(
+--   {
+--     key = "r",
+--     mods = HYPER,
+--     label = "Reload Hammerspoon",
+--     fn = ReloadHammerSpoon
+--   },
+--   {
+--     key = "[",
+--     mods = { "shift" },
+--     label = "Volume Down",
+--     fn = VolumeDown
+--   },
+--   {
+--     key = "]",
+--     mods = { "shift" },
+--     label = "Volume Up",
+--     fn = VolumeUp
+--   }
+-- )
+
+local bindingConf = {
+  {
+    app = "Zoom",
+    splitEvery = 8,
+    keys = {
+      {
+        key = "c",
+        label = "Center",
+        fn = ZoomZoom
+      },
+      { key = "z", label = "Mute", fn = function() hs.eventtap.keyStroke(HYPER, "z") end }
+    }
+  },
+  {
+    app = "Slack",
+    keys = {
+      {
+        mods = { "option" },
+        key = "1",
+        label = "👀",
+        fn = keys.fnutils.paste("👀")
+      },
+      {
+        mods = { "option" },
+        key = "2",
+        label = "😂",
+        fn = keys.fnutils.paste("😂")
+      },
+      {
+        mods = { "option" },
+        key = "3",
+        label = "❤️",
+        fn = keys.fnutils.paste("❤️")
+      }
+    }
+  },
+  {
+    app = "Firefox",
+    keys = {
+      {
+        mods = { "command" },
+        key = "p",
+        label = "pulls",
+        fn = keys.fnutils.openURL("https://github.com/pulls/assigned")
+      },
+      {
+        mods = { "command" },
+        key = "i",
+        label = "issues",
+        fn = keys.fnutils.openURL("https://github.com/issues/assigned")
+      }
+    }
+  },
+  {
+    app = "Sublime Text",
+    keys = {
+      {
+        key = "m",
+        label = "🗃️",
+        fn = function()
+          hs.eventtap.keyStroke({ "cmd", "alt" }, "m")
+        end
+      },
+      {
+        key = ".",
+        label = "👨‍💻",
+        fn = function()
+          hs.eventtap.keyStroke({ "cmd", "alt" }, ".")
+        end
+      },
+    }
+  }
+}
+
+-- hbb:setAppBindings(bindingConf)
+
+function ConsoleCommand()
   hs.toggleConsole()
 end
 
 --- Bind keys
-hs.hotkey.bind(hyper, "return", "Toggle Audio Output", toggleAudioOutput)
+hs.hotkey.bind(HYPER, "return", "Toggle Audio Output", toggleAudioOutput)
 hs.hotkey.bind(
-  hyper,
+  HYPER,
   "c",
   "Toggle Console",
-  consoleCommand
+  ConsoleCommand
 )
 
 hs.hotkey.bind(
-  hyper,
+  HYPER,
   "v",
   "Edit Configuration",
   function()
@@ -221,258 +322,88 @@ hs.hotkey.bind(
 )
 
 hs.hotkey.bind(
-  hyper,
+  HYPER,
   "a",
-  nil,
+  "Slack",
   function()
-    toggleApp({name = "Slack", launch = true, kbd = nil, rect = nil})
+    toggleApp({ name = "Slack", launch = true, kbd = nil, rect = nil })
   end
 )
 
 hs.hotkey.bind(
-  hyper,
+  HYPER,
   "s",
   "Spotify",
   function()
-    toggleApp({name = "Spotify", launch = true, kbd = nil, rect = nil})
+    toggleApp({ name = "Spotify", launch = true, kbd = nil, rect = nil })
   end
 )
 
 hs.hotkey.bind(
-  hyper,
-  "d",
-  "Drafts",
-  function()
-    toggleApp({name = "Drafts", launch = true, kbd = nil, rect = nil, moveToCurrentSpace= true})
-  end
-)
-hs.hotkey.bind(
-  hyper,
+  HYPER,
   "q",
   "Telegram",
   function()
-    toggleApp({name = "Telegram", launch = true, kbd = nil, rect = nil})
+    toggleApp({ name = "Telegram", launch = true, kbd = nil, rect = nil })
   end
 )
 
 hs.hotkey.bind(
-  hyper,
-  "w",
-  "Keybase",
+  HYPER,
+  "o",
+  "Obsidian",
   function()
-    toggleApp({name = "Keybase", launch = true, kbd = nil, rect = nil})
+    toggleApp({ name = "Obsidian", launch = true, kbd = nil, rect = nil })
   end
 )
 
 hs.hotkey.bind(
-  hyper,
-  "m",
-  "Coaster",
+  HYPER,
+  "'",
+  "To Markdown Link",
   function()
-    toggleApp({name = "Coaster", launch = true, kbd = nil, rect = nil, moveToCurrentSpace= true})
-  end
-)
+    playKb({ { "cmd", "l" }, { "cmd", "c" } })
+    playKb({ { "cmd", "l" }, { "cmd", "c" } })
 
-function toggleZoomMuteCommand()
-    hs.osascript.applescript([[
-if application "zoom.us" is running then
-tell application "System Events" to tell process "zoom.us"
-    if menu item "Unmute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1 exists then
-     click menu item "Unmute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1
-    else
-     if menu item "Mute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1 exists then
-       click menu item "Mute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1
-     end if
-    end if
-end tell
-end if
-]]
-)
-  end
-
-hs.hotkey.bind(
-  hyper,
-  "z",
-  nil,
-  toggleZoomMuteCommand
-)
-
-
-local c = require("hs.canvas")
-function iconSized(text, size)
-  local a = c.new {x = 0, y = 0, w = 80, h = 80}
-
-  local delta = (80 - size) / 2
-
-  a[1] = {
-    frame = {h = size, w = size, x = delta, y = delta},
-    text = hs.styledtext.new(
-      text,
-      {
-        font = {name = ".AppleSystemUIFont", size = size},
-        color = hs.drawing.color.colorsFor("Apple")["White"],
-        paragraphStyle = {alignment = "center"}
-      }
-    ),
-    type = "text"
-  }
-  return a:imageFromCanvas()
-end
-
-function iconForDeck(text)
-  return iconSized(text, 76)
-end
-
-function clickedIconForDeck(text)
-  return iconSized(text, 60)
-end
-
-
-function streamButton(icons, command, autoAdvanceIcon)
-  local b = {}
-  b.icons = icons
-  b.current = 1
-  b.command = command
-  b.autoAdvanceIcon = autoAdvanceIcon
-
-  function b:icon()
-    return self.icons[self.current]
-  end
-
-  function b:clickedIcon()
-    if self.clickedIcons then 
-      return self.clickedIcons[self.current]
-    else
-      return self:icon()
+    local title = hs.window.focusedWindow():title()
+    local url = hs.pasteboard.readString()
+    if string.find(url, "http") == 1 then
+      hs.pasteboard.writeObjects("[" .. title .. "](" .. url .. ")")
     end
-  end
-
-  function b:withAutoAdvanceIcon()
-    self.autoAdvanceIcon = true
-    return self
-  end
-
-  function b:withClickedIcons(i)
-    self.clickedIcons = i
-    return self
-  end
-
-  function b:pressed ()
-    if self.command then
-      self.command(self)
-      if self.autoAdvanceIcon then
-        self.current = self.current + 1
-        if self.current > #self.icons then
-          self.current = 1
-        end
-      end
-    end
-  end
-  return b
-end
-
-
-function isOn(what)
-  output, status, t, rc = hs.execute("~pierre.baillet/bin/hue_get_all_groups FBXd8sQkm7c4fop3MxmEt1bqlZsT-PhT1nQCgZJu")
-  local on = false
-  if rc == 0 then
-    for line in output:gmatch("([^\n]*)\n?") do
-      if string.find(line, what) and string.find(line, " on ") then
-        on = true
-      end
-    end
-  else
-    print("Failed calling hue controlling command:")
-    print(output)
-    print(status)
-    print(t)
-    print(rc)
-  end
-
-  return on
-end
-
-function lightsCommand(self)
-  local on = isOn("Ordi")
-  if on then       
-    output, status, t, rc = hs.execute("~pierre.baillet/bin/hue_set_group_state FBXd8sQkm7c4fop3MxmEt1bqlZsT-PhT1nQCgZJu 5 off")
-    self.current = 1
-  else
-    output, status, t, rc = hs.execute("~pierre.baillet/bin/hue_set_scene FBXd8sQkm7c4fop3MxmEt1bqlZsT-PhT1nQCgZJu OOhyOyaSQp2S77d")
-    self.current = 2
-  end
-end
-
-local lightButton = streamButton({"🛋️", "💡"}, lightsCommand)
-local centerButton = streamButton({"🅲", "🅒"}, function ()
-    hs.window.focusedWindow():centerOnScreen(nil, true)
-  end):
-  withAutoAdvanceIcon():
-  withClickedIcons({"ⓒ", "🄲"})
-
-if not isOn("Ordi") then
-  lightButton.current = 2
-end
- 
-local deckConf =  {
-  lightButton,
-  centerButton, 
-  streamButton({"♻️"}, reloadCommand),
-  streamButton({"📜"}, consoleCommand),
-  streamButton({"🔇"}, toggleZoomMuteCommand)
-}
-
-
-hs.streamdeck.init(function(connected, device)
-  print("received streamdeck plugin event ".. device:serialNumber())
-  device:reset()
-  for a = 1,6 do
-    if #deckConf < a then
-      print("we don't have info for button ".. a)
-
-    else
-      local dc = deckConf[a]
-      device:setButtonImage(a, iconForDeck(dc:icon()))
-    end
-  end
-
-  device:buttonCallback(
-    function (userData, button, buttonPressed)
-      dc = deckConf[button]
-      if buttonPressed then
-        device:setButtonImage(button, clickedIconForDeck(dc:clickedIcon()))
-        dc:pressed()
-      else
-        device:setButtonImage(button, iconForDeck(dc:icon()))
-      end
+    hs.timer.doAfter(1, function()
+      hs.eventtap.keyStroke({}, "ESCAPE")
     end)
-end)
+  end
+)
+
 
 -- Unsplash
-local status, secret = pcall(require, "secret")
-if(status) then
-  hs.loadSpoon("Unsplash")
-  spoon.Unsplash.logger.setLogLevel("debug")
-  spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
-else
-  print("UNSPLASH secret is missing, not starting...")
-end
+-- local status, secret = pcall(require, "secret")
+-- if(status) then
+--   hs.loadSpoon("Unsplash")
+--   spoon.Unsplash.logger.setLogLevel("debug")
+--   spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
+-- else
+--   print("UNSPLASH secret is missing, not starting...")
+-- end
 
--- MiroWindowsManager
+-- -- MiroWindowsManager
 hs.loadSpoon("MiroWindowsManager")
+hs.window.animationDuration = 0
 spoon.MiroWindowsManager:bindHotkeys(
   {
-    up = {hyper, "up"},
-    down = {hyper, "down"},
-    right = {hyper, "right"},
-    left = {hyper, "left"},
-    fullscreen = {hyper, "f"},
+    up = { HYPER, "up" },
+    down = { HYPER, "down" },
+    right = { HYPER, "right" },
+    left = { HYPER, "left" },
+    fullscreen = { HYPER, "f" },
   }
 )
 
+
 -- extra feature for the WM
-hs.hotkey.bind(hyper, "pagedown", "Center Window",
-  function ()
+hs.hotkey.bind(HYPER, "pagedown", "Center Window",
+  function()
     hs.window.focusedWindow():centerOnScreen(nil, true)
   end)
 
@@ -480,32 +411,69 @@ hs.hotkey.bind(hyper, "pagedown", "Center Window",
 hs.loadSpoon("Emojis")
 spoon.Emojis:bindHotkeys(
   {
-    toggle = {hyper, "e"}
+    toggle = { HYPER, "e" }
   }
 )
 
 --
-hs.loadSpoon("URLDispatcher")
+-- hs.loadSpoon("URLDispatcher")
 
-u = spoon.URLDispatcher
-u.logger.setLogLevel("debug")
-u.url_patterns = {
-  -- { "https?://github.com", "org.mozilla.firefox" }
-  -- ,{ "https://www.youtube.com", "com.apple.Safari"}
-  -- ,{ "https://youtube.com", "com.apple.Safari"}
-  -- { "https?://trello.com","com.fluidapp.FluidApp2.Trello" }
-  -- ,{ "https://datadoghq.atlassian.net", "com.brave.Browser"}
-}
-u.default_handler = "org.mozilla.firefox"
-u:start()
+-- u = spoon.URLDispatcher
+-- u.logger.setLogLevel("debug")
+-- u.url_patterns = {
+--   -- { "https?://github.com", "org.mozilla.firefox" }
+--   -- ,{ "https://www.youtube.com", "com.apple.Safari"}
+--   -- ,{ "https://youtube.com", "com.apple.Safari"}
+--   -- { "https?://trello.com","com.fluidapp.FluidApp2.Trello" }
+--   -- ,{ "https://datadoghq.atlassian.net", "com.brave.Browser"}
+-- }
+-- u.default_handler = "org.mozilla.firefox"
+-- u:start()
 
-hs.loadSpoon("AfterDark"):start({showMenu = true})
+hs.loadSpoon("AfterDark"):start({ showMenu = true })
 
+streamdeck = require("streamdeck")
+streamdeck:observe(bindingConf)
 
-hs.hotkey.showHotkeys(hyper, "h")
+function locked()
+  streamdeck:sleep()
+end
+
+function unlocked()
+  streamdeck:awake()
+end
+
+watcher = require("lock_watcher")
+watcher:start(locked, unlocked)
+
+-- This lets you click on the menu bar item to toggle the mute state
+zoomStatusMenuBarItem = hs.menubar.new(nil)
+zoomStatusMenuBarItem:setClickCallback(function()
+  spoon.Zoom:toggleMute()
+end)
+
+updateZoomStatus = function(event)
+  hs.printf("updateZoomStatus(%s)", event)
+  if (event == "from-running-to-meeting") then
+    zoomStatusMenuBarItem:returnToMenuBar()
+  elseif (event == "muted") then
+    zoomStatusMenuBarItem:setTitle("🔴")
+  elseif (event == "unmuted") then
+    zoomStatusMenuBarItem:setTitle("🟢")
+  elseif (event == "from-meeting-to-running") or (event == "from-running-to-closed") then
+    zoomStatusMenuBarItem:setTitle("no-zoom")
+  end
+end
+
+hs.loadSpoon("Zoom")
+updateZoomStatus("from-running-to-closed")
+spoon.Zoom:setStatusCallback(updateZoomStatus)
+spoon.Zoom:start()
 
 print("Reload Completed")
-hs.closeConsole()
+if not has_failed then
+  hs.closeConsole()
+end
 
 show_notification("Configuration", "Successfully Loaded!")
 hs.dockicon.hide()

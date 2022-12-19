@@ -11,9 +11,6 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 obj.logger = hs.logger.new("Bretzel")
 
-local fnutils = require "hs.fnutils"
-local fs = require "hs.fs"
-
 local subfolders = {
   mp3 = "Musics",
   app = "Apps",
@@ -45,7 +42,6 @@ local subfolders = {
   jpg = "Pictures",
   bmp = "Pictures",
   svg = "Pictures",
-  webp = "Pictures",
   psd = "Pictures",
   tiff = "Pictures",
   rar = "Archives",
@@ -95,21 +91,20 @@ function obj:init()
   print("Starting Bretzel Spoon...")
 end
 
--- sortRoot: if set to true, will sort path
 --           if set to false, sort only inside the Archive folder
-function obj:boot(path, tagsAndAge, archiveAge, sortRoot)
+function obj:boot(path, tagsAndAge, archiveAge)
   self.logger.i("Starting for " .. path)
   local function ScanFiles()
     self.logger.i("Waking up for " .. path)
-    self:processDirectory(path, path, tagsAndAge, archiveAge, sortRoot)
+    self:processDirectory(path, path, tagsAndAge, archiveAge)
   end
 
-  bretzelTimer = hs.timer.new(100, ScanFiles)
-  bretzelTimer:start()
+  BretzelTimer = hs.timer.new(100, ScanFiles)
+  BretzelTimer:start()
   ScanFiles()
 end
 
-function obj:processDirectory(directory_root, scan_root, tagsAndAge, archiveAge, sortHere)
+function obj:processDirectory(directory_root, scan_root, tagsAndAge, archiveAge)
   -- every file in here should be relocated to directory_root .. subfolder
   local iter, dir_data = hs.fs.dir(directory_root)
   while true do
@@ -120,26 +115,25 @@ function obj:processDirectory(directory_root, scan_root, tagsAndAge, archiveAge,
         break
       end
       local fname = directory_root .. "/" .. basename
-      local mode = hs.fs.attributes(fname, "mode")
 
       if basename == "Archive" and directory_root == scan_root then
         -- do nothing
       else
         -- process every item as if they were files
-        self:processFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge)
+        self:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
       end
     end
   end
 end
 
-function obj:processFile(directory_root, scan_root, fname, basename, tagsAndAge, archiveAge, archiveFolder)
+function obj:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
   local now = os.time()
   local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
   local sf = "Default"
   self.logger.i(fname .. ", since:" .. since)
 
-  local s, e = string.find(basename, "%.[^%.]+$")
+  local s, _ = string.find(basename, "%.[^%.]+$")
   if s then
     local ext = string.lower(string.sub(basename, s + 1))
     sf = subfolders[ext]
@@ -152,14 +146,14 @@ function obj:processFile(directory_root, scan_root, fname, basename, tagsAndAge,
 
   if since > archiveAge then
     -- remove tags
-    existingTags = hs.fs.tagsGet(fname)
+    local existingTags = hs.fs.tagsGet(fname)
     if existingTags then
       hs.fs.tagsRemove(fname, existingTags)
     end
 
     local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
     self.logger.i("Archive folder: " .. archiveFolder)
-    dest = archiveFolder .. basename
+    local dest = archiveFolder .. basename
     if dest ~= fname then
       hs.fs.mkdir(scan_root .. "/Archive")
       hs.fs.mkdir(archiveFolder)
@@ -177,15 +171,14 @@ function obj:processFile(directory_root, scan_root, fname, basename, tagsAndAge,
       end
     end
 
-    local tagParams = ""
     if tag ~= "" then
       -- we actually SET the tag and erase all others.
       -- this kinda sucks if you have your tags in this folder
-      existingTags = hs.fs.tagsGet(fname)
-      if tags ~= nil then
+      local existingTags = hs.fs.tagsGet(fname)
+      if existingTags ~= nil then
         hs.fs.tagsRemove(fname, existingTags)
       end
-      newTags = {}
+      local newTags = {}
       newTags[1] = tag
       local ok, err = pcall(hs.fs.tagsSet, fname, newTags)
       if not ok then
