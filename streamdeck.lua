@@ -292,13 +292,15 @@ end
 zoomTimer = hs.timer.doEvery(1, UpdateZoomButton)
 UpdateZoomButton()
 
-if not isOn("Ordi") then
-	lightButton.current = 2
+local function HomeManagerConf()
+	hs.execute("/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin/subl ~/.config/home-manager/", true)
+end
+
+local function EditConfiguration()
+	hs.execute("/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin/subl ~/.hammerspoon", true)
 end
 
 local deckConf = {
-	lightButton,
-	lavaButton,
 	centerButton,
 	consoleButton,
 	zoomButton,
@@ -306,34 +308,16 @@ local deckConf = {
 	emojiStreamButton({ "⬆️" }, VolumeUp),
 	emojiStreamButton({ "⏯️" }, PlayPause),
 	emojiStreamButton({ "⬇️" }, VolumeDown),
+	emojiStreamButton({ "🔨" }, EditConfiguration),
+	emojiStreamButton({ "🏠" }, HomeManagerConf),
 }
-
-local shiftDeckConf = {}
-
-local shift_on = false
-
-shift_tap = hs.eventtap.new({ hs.eventtap.event.types.flagsChanged }, function(event)
-	local whichFlags = event:getFlags()
-	local old_shift = shift_on
-	if whichFlags["shift"] then
-		shift_on = true
-	else
-		shift_on = false
-	end
-	if not shift_on == old_shift then
-		UpdateDeck()
-	end
-end)
-
-shift_tap:start()
 
 local activeDeckConf = deckConf
 function UpdateDeck()
-	if #shiftDeckConf > 1 and shift_on then
-		activeDeckConf = shiftDeckConf
-	else
-		activeDeckConf = deckConf
+	if deck == nil then
+		return
 	end
+	activeDeckConf = deckConf
 
 	if streamdeck.sleeping then
 		streamdeck:showImage()

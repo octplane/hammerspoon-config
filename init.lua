@@ -22,7 +22,7 @@ HyperBindings = keys:createHyperBindings({
 	fontSize = 12,
 	modsColor = { hex = "#FA58B6" },
 	keyColor = { hex = "#f5d76b" },
-	fontFamily = "JetBrainsMono Nerd Font Mono",
+	fontFamily = "FiraCode Nerd Font Mono",
 	separator = "---",
 	position = { x = "center", y = "bottom" },
 })
@@ -217,22 +217,33 @@ function EditConfiguration()
 	hs.execute("subl ~/.hammerspoon", true)
 end
 
+function EditHM()
+	hs.execute("subl ~/.config/home-manager/", true)
+end
+
 function GB(key, label, fn)
 	return { key = key, mods = HYPER, label = label, fn = fn }
 end
 
+function KEY(key, label, fn)
+	return { key = key, label = label, fn = fn }
+end
+
+
 HyperBindings:setGlobalBindings(
-	GB("r", "Reload Hammerspoon", ReloadHammerSpoon),
+	KEY("r", "Reload Hammerspoon", ReloadHammerSpoon),
 	GB("]", "Volume Up", VolumeUp),
 	GB("[", "Volume Down", VolumeDown),
 	GB("c", "Center Middle", CenterMiddle),
 	GB("return", "Toggle Audio Output", ToggleAudioOutput),
 	GB("p", "Toggle Console", ConsoleCommand),
-	GB("v", "Edit Configuration", EditConfiguration),
+	KEY("v", "Edit Configuration", EditConfiguration),
+	KEY("h", "Home Manager Configuration", EditHM),
 	GB("a", "Slack", ToggleAppCallback({ name = "Slack", launch = true, kbd = nil, rect = nil })),
 	GB("s", "Spotify", ToggleAppCallback({ name = "Spotify", launch = true, kbd = nil, rect = nil })),
 	GB("q", "Telegram", ToggleAppCallback({ name = "Telegram", launch = true, kbd = nil, rect = nil })),
-	GB("o", "Obsidian", ToggleAppCallback({ name = "Obsidian", launch = true, kbd = nil, rect = nil }))
+	GB("o", "Obsidian", ToggleAppCallback({ name = "Obsidian", launch = true, kbd = nil, rect = nil })),
+	KEY("t", "TODO", function() hs.urlevent.openURL("drafts://open?uuid=9D659E1D-A20B-4B66-861C-FDCCDEA994E4") end)
 )
 
 local bindingConf = {
@@ -294,57 +305,6 @@ local bindingConf = {
 }
 
 HyperBindings:setAppBindings(bindingConf)
---- Bind keys
-
--- hs.hotkey.bind(HYPER, "t", "Todo", function()
--- 	toggleApp({
--- 		name = "Drafts",
--- 		url = "drafts://x-callback-url/open?uuid=9D659E1D-A20B-4B66-861C-FDCCDEA994E4",
--- 		launch = true,
--- 		kbd = nil,
--- 		rect = nil,
--- 	})
--- end)
---
--- hs.hotkey.bind(HYPER, "9", "Open Stream Deck", function()
--- 	local ret = hs.osascript.applescript([[
--- tell application "System Events" to tell process "Stream Deck"
---     tell menu bar item 1 of menu bar 1
---         click menu item "Configure Stream Deck" of menu 1
---     end tell
--- end tell]])
--- 	print(ret)
--- end)
---
--- Unsplash
--- local status, secret = pcall(require, "secret")
--- if(status) then
---   hs.loadSpoon("Unsplash")
---   spoon.Unsplash.logger.setLogLevel("debug")
---   spoon.Unsplash:start(secret.UNSPLASH_CLIENT_ID, "/Users/pierrebaillet/.hammerspoon/wallpaper")
--- else
---   print("UNSPLASH secret is missing, not starting...")
--- end
---
-
-us = hs.loadSpoon("UnsplashZ")
-us.init()
-
--- -- MiroWindowsManager
-hs.loadSpoon("MiroWindowsManager")
-hs.window.animationDuration = 0
-spoon.MiroWindowsManager:bindHotkeys({
-	up = { HYPER, "up" },
-	down = { HYPER, "down" },
-	right = { HYPER, "right" },
-	left = { HYPER, "left" },
-	fullscreen = { HYPER, "f" },
-})
-
--- extra feature for the WM
-hs.hotkey.bind(HYPER, "pagedown", "Center Window", function()
-	CenterMiddle()
-end)
 
 AsciimojiCompletion = function(chosen)
 	if chosen then
@@ -365,61 +325,20 @@ spoon.Emojis:bindHotkeys({
 	toggle = { HYPER, "e" },
 })
 
---
--- hs.loadSpoon("URLDispatcher")
-
--- u = spoon.URLDispatcher
--- u.logger.setLogLevel("debug")
--- u.url_patterns = {
---   -- { "https?://github.com", "org.mozilla.firefox" }
---   -- ,{ "https://www.youtube.com", "com.apple.Safari"}
---   -- ,{ "https://youtube.com", "com.apple.Safari"}
---   -- { "https?://trello.com","com.fluidapp.FluidApp2.Trello" }
---   -- ,{ "https://datadoghq.atlassian.net", "com.brave.Browser"}
--- }
--- u.default_handler = "org.mozilla.firefox"
--- u:start()
-
 hs.loadSpoon("AfterDark"):start({ showMenu = true })
 
--- streamdeck = nil
--- streamdeck = require("streamdeck")
--- streamdeck:observe(bindingConf)
---
--- function locked()
--- 	streamdeck:sleep()
--- end
---
--- function unlocked()
--- 	streamdeck:awake()
--- end
---
--- watcher = require("lock_watcher")
--- watcher:start(locked, unlocked)
---
--- This lets you click on the menu bar item to toggle the mute state
-zoomStatusMenuBarItem = hs.menubar.new(true)
-zoomStatusMenuBarItem:setClickCallback(function()
-	spoon.Zoom:toggleMute()
-end)
+streamdeck = nil
+streamdeck = require("streamdeck")
+streamdeck:observe(bindingConf)
 
-updateZoomStatus = function(event)
-	hs.printf("updateZoomStatus(%s)", event)
-	if event == "from-running-to-meeting" then
-		zoomStatusMenuBarItem:returnToMenuBar()
-	elseif event == "muted" then
-		zoomStatusMenuBarItem:setTitle("🔴")
-	elseif event == "unmuted" then
-		zoomStatusMenuBarItem:setTitle("🟢")
-	elseif (event == "from-meeting-to-running") or (event == "from-running-to-closed") then
-		zoomStatusMenuBarItem:setTitle("no-zoom")
-	end
+function locked()
+	streamdeck:sleep()
 end
 
-hs.loadSpoon("Zoom")
-updateZoomStatus("from-running-to-closed")
-spoon.Zoom:setStatusCallback(updateZoomStatus)
-spoon.Zoom:start()
+function unlocked()
+	streamdeck:awake()
+end
+
 
 local hotswitchHs = require("hotswitch-hs/hotswitch-hs")
 -- hotswitchHs.enableAutoUpdate() -- If you don't want to update automatically, remove this line.

@@ -22,6 +22,4 @@ local bretzelConfig = {
   }
 }
 
-for _, conf in pairs(bretzelConfig) do
-  spoon.Bretzel:boot(conf["path"], conf["tagsAndAge"], conf["archiveAge"], conf["sortRoot"])
-end
+spoon.Bretzel:boot(bretzelConfig)

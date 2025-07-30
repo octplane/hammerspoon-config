@@ -9,7 +9,7 @@ obj.author = "Pierre Baillet <pierre@baillet.name>"
 obj.homepage = "https://github.com/Hammerspoon/Spoons"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
-obj.logger = hs.logger.new("Bretzel")
+obj.logger = hs.logger.new("Bretzel", "info")
 
 local subfolders = {
   mp3 = "Musics",
@@ -86,17 +86,28 @@ local subfolders = {
   ttf = "Fonts"
 }
 
+obj.conf = {}
+
 function obj:init()
   -- is the emojis file available?
   print("Starting Bretzel Spoon...")
 end
 
 --           if set to false, sort only inside the Archive folder
-function obj:boot(path, tagsAndAge, archiveAge)
-  self.logger.i("Starting for " .. path)
+function obj:boot(configuration)
+  self.conf = configuration
+  for alias, _ in pairs(self.conf) do
+    self.logger.i("Adding support for " .. alias)
+  end
+
   local function ScanFiles()
-    self.logger.i("Waking up for " .. path)
-    self:processDirectory(path, path, tagsAndAge, archiveAge)
+    for alias, config in pairs(self.conf) do
+      self.logger.i("Waking up for " .. alias)
+      local path = config["path"]
+      local tagsAndAge = config["tagsAndAge"]
+      local archiveAge = config["archiveAge"]
+      self:processDirectory(path, path, tagsAndAge, archiveAge)
+    end
   end
 
   BretzelTimer = hs.timer.new(100, ScanFiles)
@@ -131,7 +142,7 @@ function obj:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
   local since = now - hs.fs.attributes(fname, "modification")
   local tag = ""
   local sf = "Default"
-  self.logger.i(fname .. ", since:" .. since)
+  self.logger.d(fname .. ", since:" .. since)
 
   local s, _ = string.find(basename, "%.[^%.]+$")
   if s then
@@ -141,7 +152,7 @@ function obj:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
       sf = "Default"
     end
   else
-    self.logger.i("No extensions for " .. basename)
+    self.logger.d("No extensions for " .. basename)
   end
 
   if since > archiveAge then
@@ -152,13 +163,13 @@ function obj:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
     end
 
     local archiveFolder = scan_root .. "/Archive/" .. sf .. "/"
-    self.logger.i("Archive folder: " .. archiveFolder)
+    self.logger.d("Archive folder: " .. archiveFolder)
     local dest = archiveFolder .. basename
     if dest ~= fname then
       hs.fs.mkdir(scan_root .. "/Archive")
       hs.fs.mkdir(archiveFolder)
       -- move to archive
-      self.logger.i(fname .. " -> " .. archiveFolder .. " | " .. basename)
+      self.logger.d(fname .. " -> " .. archiveFolder .. " | " .. basename)
       os.rename(fname, archiveFolder .. basename)
     else
       os.remove(fname)
@@ -166,7 +177,7 @@ function obj:processFile(scan_root, fname, basename, tagsAndAge, archiveAge)
   else
     for tagName, duration in pairs(tagsAndAge) do
       if since > duration then
-        self.logger.i(fname .. "(since:" .. since .. ", archiveAge:" .. archiveAge .. "): " .. tagName)
+        self.logger.d(fname .. "(since:" .. since .. ", archiveAge:" .. archiveAge .. "): " .. tagName)
         tag = tagName
       end
     end
