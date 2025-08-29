@@ -344,7 +344,7 @@ local hotswitchHs = require("hotswitch-hs/hotswitch-hs")
 -- hotswitchHs.enableAutoUpdate() -- If you don't want to update automatically, remove this line.
 hotswitchHs.setPanelToAlwaysShowOnPrimaryScreen()
 hotswitchHs.enableAllSpaceWindows()
-hs.hotkey.bind({ "command" }, ".", hotswitchHs.openOrClose) -- Set a keybind you like to open HotSwitch-HS panel.
+hs.hotkey.bind({ "command" }, "'", hotswitchHs.openOrClose) -- Set a keybind you like to open HotSwitch-HS panel.
 
 function invertScreen()
 	hs.screen.setInvertedPolarity(true)
