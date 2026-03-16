@@ -350,6 +350,7 @@ end
 -- AeroSpace menubar widget
 local aerospaceWidget = require("aerospace")
 aerospaceWidget.start()
+hs.hotkey.bind(HYPER, "h", "AeroSpace Help", aerospaceWidget.toggleHelp)
 
 print("Reload Completed")
 
