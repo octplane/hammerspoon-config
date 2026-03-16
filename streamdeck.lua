@@ -171,13 +171,14 @@ else
 end
 
 function hue_w(command, parameters)
-	output, status, t, rc = hs.execute("~/bin/" .. command .. " " .. HUE_TOKEN .. " " .. parameters)
-	if rc == 0 then
+	local handle = io.popen(os.getenv("HOME") .. "/bin/" .. command .. " " .. HUE_TOKEN .. " " .. parameters)
+	output = handle:read("*a")
+	local ok, t, rc = handle:close()
+	if ok then
 		return true, output
 	else
 		fail("Failed calling hue controlling command:")
 		print(output)
-		print(status)
 		print(t)
 		print(rc)
 	end
@@ -248,49 +249,6 @@ local centerButton = emojiStreamButton({ "📐", "📏" }, function()
 	:withClickedIcons({ "ⓒ", "🄲" })
 local consoleButton = emojiStreamButton({ "📝" }, ConsoleCommand)
 
-function ToggleZoomMuteCommand()
-	hs.eventtap.keyStroke(HYPER, "z")
-end
-
-local zoomButton = emojiStreamButton({ "🔇", "🗣️", "😴" }, ToggleZoomMuteCommand)
-
-function getZoomMuteState()
-	ret, obj, output = hs.osascript._osascript(
-		[[
-if application "zoom.us" is running then
-  tell application "System Events" to tell process "zoom.us"
-      if menu item "Unmute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1 exists then
-        set returnValue to "MUTED"
-      else
-       if menu item "Mute Audio" of menu 1 of menu bar item "Meeting" of menu bar 1 exists then
-        set returnValue to "LIVE"
-       end if
-      end if
-  end tell
-else
-  set returnValue to ""
-end if
-    ]],
-		"applescript"
-	)
-	return obj
-end
-
-function UpdateZoomButton()
-	local state = getZoomMuteState()
-	if state == nil then
-		zoomButton.current = 3
-		return
-	end
-	if state == "MUTED" then
-		zoomButton.current = 1
-	else
-		zoomButton.current = 2
-	end
-end
-
-zoomTimer = hs.timer.doEvery(1, UpdateZoomButton)
-UpdateZoomButton()
 
 local function HomeManagerConf()
 	hs.execute("/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin/subl ~/.config/home-manager/", true)
@@ -303,7 +261,6 @@ end
 local deckConf = {
 	centerButton,
 	consoleButton,
-	zoomButton,
 	emojiStreamButton({ "♻️" }, ReloadHammerSpoon),
 	emojiStreamButton({ "⬆️" }, VolumeUp),
 	emojiStreamButton({ "⏯️" }, PlayPause),

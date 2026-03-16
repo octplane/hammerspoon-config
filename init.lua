@@ -71,22 +71,6 @@ end
 --  https://github.com/asmagill/hammerspoon_asm
 local hasSpaces, spaces = pcall(require, "hs.spaces")
 
-function ZoomZoom()
-	if hs.window.focusedWindow() then
-		local win = hs.window.frontmostWindow()
-		local id = win:id()
-		local screen = win:screen()
-		local grid = hs.grid.getGrid(screen)
-
-		local w = math.floor(grid.w / 3)
-		local h = math.floor(grid.h / 3)
-
-		local cell = 0 .. ",0 " .. w .. "x" .. h
-
-		hs.grid.set(win, cell, screen)
-	end
-end
-
 function CenterMiddle()
 	if hs.window.focusedWindow() then
 		local win = hs.window.frontmostWindow()
@@ -248,19 +232,6 @@ HyperBindings:setGlobalBindings(
 
 local bindingConf = {
 	{
-		app = "Zoom",
-		keys = {
-			{ key = "c", label = "Below Camera", fn = ZoomZoom },
-			{
-				key = "z",
-				label = "Mute",
-				fn = function()
-					hs.eventtap.keyStroke(HYPER, "z")
-				end,
-			},
-		},
-	},
-	{
 		app = "Slack",
 		keys = {
 			{ mods = { "option" }, key = "1", label = "👀", fn = keys.fnutils.paste("+👀") },
@@ -375,6 +346,10 @@ function nagScreen()
 		normalScreen()
 	end)
 end
+
+-- AeroSpace menubar widget
+local aerospaceWidget = require("aerospace")
+aerospaceWidget.start()
 
 print("Reload Completed")
 
