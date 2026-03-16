@@ -4,6 +4,7 @@
 -- Click a pill to switch to that workspace.
 
 local M = {}
+local aerospaceHelp = require("aerospace_help")
 
 local AEROSPACE = "/Users/pierrebaillet/bin/aerospace"
 local POLL_INTERVAL = 2 -- seconds — lightweight poll (focused ws + its windows only)
@@ -375,5 +376,8 @@ function M.stop()
   cachedFocusedWs = nil
   print("aerospace: menubar widget stopped")
 end
+
+-- Expose help panel toggle
+M.toggleHelp = aerospaceHelp.toggle
 
 return M
