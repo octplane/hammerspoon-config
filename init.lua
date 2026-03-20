@@ -347,6 +347,10 @@ function nagScreen()
 	end)
 end
 
+-- GitLab MR link formatter for Slack
+local gitlabMrLinkize = require("gitlab_mr_linkize")
+gitlabMrLinkize.start()
+
 -- AeroSpace menubar widget
 local aerospaceWidget = require("aerospace")
 aerospaceWidget.start()
