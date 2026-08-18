@@ -17,6 +17,12 @@ BLANK = a:imageFromCanvas()
 
 local deck
 
+-- Current mode: "aerospace" or "utils"
+local currentMode = "aerospace"
+
+-- Cached aerospace state for workspace button highlighting
+local aeroFocusedWs = nil
+
 function streamdeck:init()
 	self:iterate(function(s, x, y, p)
 		s.images[p] = BLANK
@@ -94,6 +100,8 @@ end
 
 function streamdeck:blank() end
 
+-- ── Icon rendering helpers ──────────────────────────────────────────
+
 function iconSized(text, size)
 	local a = c.new({ x = 0, y = 0, w = streamdeck.buttonSize, h = streamdeck.buttonSize })
 
@@ -110,6 +118,57 @@ function iconSized(text, size)
 	}
 	return a:imageFromCanvas()
 end
+
+-- Render a button with colored background, label text, and optional sublabel
+local function renderButton(label, sublabel, bgColor, fgColor)
+	local sz = streamdeck.buttonSize
+	local canvas = c.new({ x = 0, y = 0, w = sz, h = sz })
+	local idx = 1
+
+	-- Background
+	canvas[idx] = {
+		type = "rectangle",
+		frame = { x = 2, y = 2, w = sz - 4, h = sz - 4 },
+		roundedRectRadii = { xRadius = 8, yRadius = 8 },
+		fillColor = bgColor,
+		action = "fill",
+	}
+	idx = idx + 1
+
+	-- Main label
+	local labelSize = sublabel and 32 or 40
+	local labelY = sublabel and 4 or 8
+	canvas[idx] = {
+		type = "text",
+		frame = { x = 0, y = labelY, w = sz, h = sz * 0.6 },
+		text = hs.styledtext.new(label, {
+			font = { name = ".AppleSystemUIFont", size = labelSize },
+			color = fgColor,
+			paragraphStyle = { alignment = "center" },
+		}),
+	}
+	idx = idx + 1
+
+	-- Sublabel (small text at bottom)
+	if sublabel then
+		canvas[idx] = {
+			type = "text",
+			frame = { x = 0, y = sz - 22, w = sz, h = 20 },
+			text = hs.styledtext.new(sublabel, {
+				font = { name = ".AppleSystemUIFont", size = 10 },
+				color = fgColor,
+				paragraphStyle = { alignment = "center" },
+			}),
+		}
+		idx = idx + 1
+	end
+
+	local img = canvas:imageFromCanvas()
+	canvas:delete()
+	return img
+end
+
+-- ── Standard emojiStreamButton (unchanged) ──────────────────────────
 
 function emojiStreamButton(icons, command, autoAdvanceIcon)
 	local b = {}
@@ -154,6 +213,167 @@ function emojiStreamButton(icons, command, autoAdvanceIcon)
 
 	return b
 end
+
+-- ── AeroSpace button factory ────────────────────────────────────────
+
+-- PR #2206 build; must match the running app's socket protocol version.
+-- Revert: "/Users/pierrebaillet/.nix-profile/bin/aerospace"
+local AEROSPACE = "/Users/pierrebaillet/ghq/github.com/nikitabobko/AeroSpace/result/bin/aerospace"
+
+-- Run an aerospace command, then refresh the deck to reflect new state
+local function aeroExec(args)
+	hs.task.new(AEROSPACE, function()
+		-- Small delay to let aerospace settle, then refresh workspace state
+		hs.timer.doAfter(0.15, function() refreshAeroState() end)
+	end, args):start()
+end
+
+-- Fetch focused workspace and update button highlights.
+-- Timed out because a CLI whose socket protocol version doesn't match the
+-- running app blocks forever, and this runs on a 2s poll (see aeroPoller).
+local AERO_CALL_TIMEOUT = 5 -- seconds
+
+function refreshAeroState()
+	local task, timeout
+	task = hs.task.new(AEROSPACE, function(exitCode, stdOut)
+		if timeout then timeout:stop() end
+		if exitCode ~= 0 then return end
+		local ok, result = pcall(hs.json.decode, stdOut)
+		if ok and result and result[1] then
+			local newWs = result[1]["workspace"]
+			if newWs ~= aeroFocusedWs then
+				aeroFocusedWs = newWs
+				if currentMode == "aerospace" then
+					UpdateDeck()
+				end
+			end
+		end
+	end, { "list-workspaces", "--focused", "--json" })
+
+	timeout = hs.timer.doAfter(AERO_CALL_TIMEOUT, function()
+		if task:isRunning() then
+			print("aerospace: list-workspaces timed out after " .. AERO_CALL_TIMEOUT .. "s, terminating")
+			task:terminate()
+		end
+	end)
+	task:start()
+end
+
+-- An aerospace button: shows label+sublabel, runs aerospace command on press
+local function aeroButton(label, sublabel, args, bgColor)
+	local b = {}
+	b.label = label
+	b.sublabel = sublabel
+	b.args = args
+	b.bgColor = bgColor or { red = 0.15, green = 0.15, blue = 0.15, alpha = 1.0 }
+	b.fgColor = { red = 1.0, green = 1.0, blue = 1.0, alpha = 1.0 }
+
+	function b:icon()
+		return renderButton(self.label, self.sublabel, self.bgColor, self.fgColor)
+	end
+
+	function b:clickedIcon()
+		local pressed = { red = 0.3, green = 0.5, blue = 1.0, alpha = 1.0 }
+		return renderButton(self.label, self.sublabel, pressed, self.fgColor)
+	end
+
+	function b:pressed()
+		aeroExec(self.args)
+	end
+
+	return b
+end
+
+-- Workspace button: dynamically highlights when it's the focused workspace
+local function wsButton(wsName)
+	local b = {}
+	b.wsName = wsName
+
+	local focusedBg = { red = 0.2, green = 0.5, blue = 1.0, alpha = 1.0 }
+	local normalBg = { red = 0.2, green = 0.2, blue = 0.2, alpha = 1.0 }
+	local fg = { red = 1.0, green = 1.0, blue = 1.0, alpha = 1.0 }
+
+	function b:icon()
+		local bg = (aeroFocusedWs == self.wsName) and focusedBg or normalBg
+		return renderButton(self.wsName, nil, bg, fg)
+	end
+
+	function b:clickedIcon()
+		return renderButton(self.wsName, nil, focusedBg, fg)
+	end
+
+	function b:pressed()
+		aeroExec({ "workspace", self.wsName })
+	end
+
+	return b
+end
+
+-- Layout cycle button: steps through layout modes one at a time
+local function layoutButton(layouts)
+	local b = {}
+	b.layouts = layouts
+	b.current = 1
+	b.bgColor = { red = 0.4, green = 0.2, blue = 0.5, alpha = 1.0 }
+	b.fgColor = { red = 1.0, green = 1.0, blue = 1.0, alpha = 1.0 }
+
+	function b:icon()
+		local entry = self.layouts[self.current]
+		return renderButton(entry.label, entry.name, self.bgColor, self.fgColor)
+	end
+
+	function b:clickedIcon()
+		local pressed = { red = 0.6, green = 0.3, blue = 0.8, alpha = 1.0 }
+		local entry = self.layouts[self.current]
+		return renderButton(entry.label, entry.name, pressed, self.fgColor)
+	end
+
+	function b:pressed()
+		local entry = self.layouts[self.current]
+		aeroExec({ "layout", entry.name })
+		self.current = self.current + 1
+		if self.current > #self.layouts then
+			self.current = 1
+		end
+	end
+
+	return b
+end
+
+-- ── Mode toggle button ──────────────────────────────────────────────
+
+local function modeToggleButton()
+	local b = {}
+
+	local aeroBg = { red = 0.1, green = 0.3, blue = 0.1, alpha = 1.0 }
+	local utilsBg = { red = 0.3, green = 0.1, blue = 0.1, alpha = 1.0 }
+	local fg = { red = 1.0, green = 1.0, blue = 1.0, alpha = 1.0 }
+
+	function b:icon()
+		if currentMode == "aerospace" then
+			return renderButton("🔧", "utils", utilsBg, fg)
+		else
+			return renderButton("✈", "aero", aeroBg, fg)
+		end
+	end
+
+	function b:clickedIcon()
+		return self:icon()
+	end
+
+	function b:pressed()
+		if currentMode == "aerospace" then
+			currentMode = "utils"
+		else
+			currentMode = "aerospace"
+		end
+		UpdateDeck()
+	end
+
+	return b
+end
+
+-- ── Hue / utility buttons (preserved from original) ─────────────────
 
 local has_failed = false
 function fail(msg)
@@ -249,7 +469,6 @@ local centerButton = emojiStreamButton({ "📐", "📏" }, function()
 	:withClickedIcons({ "ⓒ", "🄲" })
 local consoleButton = emojiStreamButton({ "📝" }, ConsoleCommand)
 
-
 local function HomeManagerConf()
 	hs.execute("/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin/subl ~/.config/home-manager/", true)
 end
@@ -258,7 +477,40 @@ local function EditConfiguration()
 	hs.execute("/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin/subl ~/.hammerspoon", true)
 end
 
-local deckConf = {
+-- ── Deck configurations ─────────────────────────────────────────────
+
+local modeToggle = modeToggleButton()
+
+-- AeroSpace mode layout (5x3):
+--  Row 1: WS1  WS2  WS3  WS4  WS5
+--  Row 2: ←    ↓    ↑    →    layout
+--  Row 3: J←   J↓   J↑   J→   [mode]
+local navColor = { red = 0.1, green = 0.25, blue = 0.4, alpha = 1.0 }
+local joinColor = { red = 0.4, green = 0.15, blue = 0.1, alpha = 1.0 }
+
+local aerospaceConf = {
+	-- Row 1: workspace switching
+	wsButton("1"),
+	wsButton("2"),
+	wsButton("3"),
+	wsButton("4"),
+	wsButton("5"),
+	-- Row 2: focus navigation + layout toggle
+	aeroButton("←", "focus", { "focus", "left" }, navColor),
+	aeroButton("↓", "focus", { "focus", "down" }, navColor),
+	aeroButton("↑", "focus", { "focus", "up" }, navColor),
+	aeroButton("→", "focus", { "focus", "right" }, navColor),
+	aeroButton("⊞", "layout", { "layout", "tiles", "accordion" }, { red = 0.4, green = 0.2, blue = 0.5, alpha = 1.0 }),
+	-- Row 3: join with + mode toggle
+	aeroButton("⇐", "join", { "join-with", "left" }, joinColor),
+	aeroButton("⇓", "join", { "join-with", "down" }, joinColor),
+	aeroButton("⇑", "join", { "join-with", "up" }, joinColor),
+	aeroButton("⇒", "join", { "join-with", "right" }, joinColor),
+	modeToggle,
+}
+
+-- Utilities mode layout (original buttons + mode toggle at position 15)
+local utilsConf = {
 	centerButton,
 	consoleButton,
 	emojiStreamButton({ "♻️" }, ReloadHammerSpoon),
@@ -267,14 +519,26 @@ local deckConf = {
 	emojiStreamButton({ "⬇️" }, VolumeDown),
 	emojiStreamButton({ "🔨" }, EditConfiguration),
 	emojiStreamButton({ "🏠" }, HomeManagerConf),
+	lightButton,
+	lavaButton,
+	nil, nil, nil, nil, -- empty slots 11-14
+	modeToggle,
 }
 
-local activeDeckConf = deckConf
+-- ── Deck update logic ───────────────────────────────────────────────
+
+local activeDeckConf = aerospaceConf
+
 function UpdateDeck()
 	if deck == nil then
 		return
 	end
-	activeDeckConf = deckConf
+
+	if currentMode == "aerospace" then
+		activeDeckConf = aerospaceConf
+	else
+		activeDeckConf = utilsConf
+	end
 
 	if streamdeck.sleeping then
 		streamdeck:showImage()
@@ -282,8 +546,8 @@ function UpdateDeck()
 	end
 
 	deck:buttonCallback(function(userData, button, buttonPressed)
-		if button <= #activeDeckConf then
-			dc = activeDeckConf[button]
+		if button <= #activeDeckConf and activeDeckConf[button] ~= nil then
+			local dc = activeDeckConf[button]
 			if buttonPressed then
 				deck:setButtonImage(button, dc:clickedIcon())
 				dc:pressed()
@@ -298,7 +562,7 @@ function UpdateDeck()
 	end
 
 	for a = 1, 15 do
-		if #activeDeckConf >= a then
+		if a <= #activeDeckConf and activeDeckConf[a] ~= nil then
 			local dc = activeDeckConf[a]
 			deck:setButtonImage(a, dc:icon())
 		else
@@ -307,12 +571,18 @@ function UpdateDeck()
 	end
 end
 
--- deckUpdate = hs.timer.doEvery(1, update_deck)
+-- Poll aerospace state to keep workspace highlights in sync
+local aeroPoller = hs.timer.doEvery(2, function()
+	if currentMode == "aerospace" then
+		refreshAeroState()
+	end
+end)
 
 hs.streamdeck.init(function(connected, device)
 	print("Setting up streamdeck configuration for " .. device:serialNumber())
 	deck = device
 	deck:reset()
+	refreshAeroState()
 	UpdateDeck()
 end)
 

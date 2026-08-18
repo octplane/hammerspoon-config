@@ -3,7 +3,8 @@
 
 local M = {}
 
-local mrPattern = "^(https://[^/]+/(.+)/%-/merge_requests/(%d+))"
+local mrPattern = "^(https://[^/]+/(.+)/%-/merge_requests/(%d+)%S*)"
+local jiraPattern = "^(https://[^/]+/browse/([A-Z][A-Z0-9_]+%-(%d+))%S*)"
 
 local function linkizePasteboard()
 	local contents = hs.pasteboard.getContents()
@@ -14,14 +15,28 @@ local function linkizePasteboard()
 	-- Trim whitespace
 	contents = contents:match("^%s*(.-)%s*$")
 
-	local url, projectPath, mrId = contents:match(mrPattern)
+	local url, linkText
+
+	-- Try GitLab MR pattern
+	local mrUrl, projectPath, mrId = contents:match(mrPattern)
+	if mrUrl then
+		url = mrUrl
+		local repo = projectPath:match("([^/]+)$")
+		linkText = repo .. "!" .. mrId
+	end
+
+	-- Try Jira/Confluence ticket pattern
+	if not url then
+		local jiraUrl, ticketKey = contents:match(jiraPattern)
+		if jiraUrl then
+			url = jiraUrl
+			linkText = ticketKey
+		end
+	end
+
 	if not url then
 		return
 	end
-
-	-- Extract last path component as repo name
-	local repo = projectPath:match("([^/]+)$")
-	local linkText = repo .. "!" .. mrId
 	local plainText = linkText .. " — " .. url
 	local html = '<a href="' .. url .. '">' .. linkText .. "</a>"
 

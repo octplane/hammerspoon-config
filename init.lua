@@ -45,6 +45,10 @@ end
 
 local ToggleAudioOutput = require("audio_output_toggle")
 
+-- Cross-profile Firefox tab index and switcher (replaces foxhop).
+local firefoxTabs = require("firefox_tabs")
+local firefoxTabPanel = require("firefox_tab_panel")
+
 function toggleInputVolume()
 	local currentInput = hs.audiodevice.defaultInputDevice()
 	local v = currentInput:inputVolume()
@@ -296,11 +300,14 @@ spoon.Emojis:bindHotkeys({
 	toggle = { HYPER, "e" },
 })
 
+-- Firefox tabs, all profiles at once: searchable chooser, or keystroke panel
+hs.hotkey.bind(HYPER, "t", "Firefox Tabs", firefoxTabs.chooser)
+hs.hotkey.bind(HYPER, "b", "Firefox Tab Panel", firefoxTabPanel.toggle)
+
 hs.loadSpoon("AfterDark"):start({ showMenu = true })
 
 streamdeck = nil
 streamdeck = require("streamdeck")
-streamdeck:observe(bindingConf)
 
 function locked()
 	streamdeck:sleep()

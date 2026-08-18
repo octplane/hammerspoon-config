@@ -6,7 +6,10 @@
 local M = {}
 local aerospaceHelp = require("aerospace_help")
 
-local AEROSPACE = "/Users/pierrebaillet/bin/aerospace"
+-- PR #2206 build. The CLI's socket protocol version must match the running
+-- app, so this follows whichever app is launched. Revert both together:
+-- "/Users/pierrebaillet/.nix-profile/bin/aerospace"
+local AEROSPACE = "/Users/pierrebaillet/ghq/github.com/nikitabobko/AeroSpace/result/bin/aerospace"
 local POLL_INTERVAL = 2 -- seconds — lightweight poll (focused ws + its windows only)
 
 -- Detect menubar height: notch Macs = 37pt, non-notch = 24pt
@@ -57,16 +60,23 @@ local function buildBundleIDMap()
   return map
 end
 
--- Run aerospace CLI asynchronously, call callback(parsed_json) when done
+-- Run aerospace CLI asynchronously, call callback(parsed_json) when done.
+-- A CLI whose socket protocol version doesn't match the running app blocks
+-- forever instead of failing, so an untimed call leaks a process per poll.
+local CALL_TIMEOUT = 5 -- seconds
+
 local function aerospace(args, callback)
   local argList = {}
   for word in args:gmatch("%S+") do
     table.insert(argList, word)
   end
 
-  hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
+  local task, timeout
+  task = hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
+    if timeout then timeout:stop() end
     if exitCode ~= 0 then
       if stdErr and stdErr ~= "" then print("aerospace: " .. args .. " error: " .. stdErr) end
+      print("aerospace: failed to run")
       callback(nil)
       return
     end
@@ -78,7 +88,15 @@ local function aerospace(args, callback)
       return
     end
     callback(result)
-  end, argList):start()
+  end, argList)
+
+  timeout = hs.timer.doAfter(CALL_TIMEOUT, function()
+    if task:isRunning() then
+      print("aerospace: " .. args .. " timed out after " .. CALL_TIMEOUT .. "s, terminating")
+      task:terminate()
+    end
+  end)
+  task:start()
 end
 
 -- Fetch ALL workspace/window state (expensive: 2 + N calls)
