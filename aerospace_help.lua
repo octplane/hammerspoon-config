@@ -201,14 +201,36 @@ local function parseConfig()
   return modes
 end
 
+local function arrayEqual(a1, a2)
+  -- Check length, or else the loop isn't valid.
+  if #a1 ~= #a2 then
+    return false
+  end
+
+  -- Check each element.
+  for i, v in ipairs(a1) do
+    if v ~= a2[i] then
+      return false
+    end
+  end
+  
+  -- We've checked everything.
+  return true
+end
+
 -- Build styled text for a single binding
 local function styledBinding(binding)
   local textStyle = { font = { name = style.fontFamily, size = style.fontSize } }
 
   -- Modifier symbols
   local modStr = ""
-  for _, m in ipairs(binding.mods) do
-    modStr = modStr .. (MOD_SYMBOLS[m] or m)
+  table.sort(binding.mods)
+  if arrayEqual(binding.mods, { "alt", "cmd", "ctrl", "shift" }) then
+    modStr = "✦"
+  else
+    for _, m in ipairs(binding.mods) do
+      modStr = modStr .. (MOD_SYMBOLS[m] or m)
+    end
   end
 
   local result = styledtext(modStr, {
@@ -334,7 +356,10 @@ end
 -- Hide the help panel
 function M.hide()
   for _, d in ipairs(alertDrawings) do
-    d:hide()
+    -- delete(), not hide(): hs.drawing keeps every drawing it has ever made
+    -- alive until it is deleted, so hiding alone leaked the background and the
+    -- text drawing on every toggle.
+    d:delete()
   end
   alertDrawings = {}
 end

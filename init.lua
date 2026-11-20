@@ -4,6 +4,12 @@
 -- package.cpath = package.cpath .. ";" .. ZBS .. "/bin/?.dylib;" .. ZBS .. "/bin/clibs53/?.dylib"
 -- require("mobdebug").start()
 
+-- Memory instrumentation. Must be required before anything else builds
+-- objects: it works by wrapping constructors, so it only sees what is created
+-- after it loads. From the console: Memwatch.report() / Memwatch.gcTest() /
+-- Memwatch.start(). Bound to HYPER+m below.
+Memwatch = require("memwatch").install()
+
 function ReloadHammerSpoon()
 	hs.console.clearConsole()
 	hs.openConsole(true)
@@ -290,19 +296,9 @@ end
 AsciimojiChooser = hs.chooser.new(AsciimojiCompletion)
 AsciimojiChooser:choices(require("asciimoji"))
 
-hs.hotkey.bind(HYPER, "x", "Asciimoji", function()
-	AsciimojiChooser:show()
-end)
 
 -- Emojis
 hs.loadSpoon("Emojis")
-spoon.Emojis:bindHotkeys({
-	toggle = { HYPER, "e" },
-})
-
--- Firefox tabs, all profiles at once: searchable chooser, or keystroke panel
-hs.hotkey.bind(HYPER, "t", "Firefox Tabs", firefoxTabs.chooser)
-hs.hotkey.bind(HYPER, "b", "Firefox Tab Panel", firefoxTabPanel.toggle)
 
 hs.loadSpoon("AfterDark"):start({ showMenu = true })
 
@@ -361,7 +357,24 @@ gitlabMrLinkize.start()
 -- AeroSpace menubar widget
 local aerospaceWidget = require("aerospace")
 aerospaceWidget.start()
+
+-- Bind HYPER
+spoon.Emojis:bindHotkeys({ toggle = { HYPER, "e" }, })
+hs.hotkey.bind(HYPER, "x", "Asciimoji", function() AsciimojiChooser:show() end)
+-- Firefox tabs, all profiles at once: searchable chooser, or keystroke panel
+hs.hotkey.bind(HYPER, "t", "Firefox Tabs", firefoxTabs.chooser)
+hs.hotkey.bind(HYPER, "b", "Firefox Tab Panel", firefoxTabPanel.toggle)
+-- Alfred's "Firefox Tabs" workflow (home-manager) focuses tabs through this.
+hs.urlevent.bind("firefoxTab", function(_, params)
+	firefoxTabs.focus({ title = params.title, index = tonumber(params.index), url = params.url })
+end)
+-- Aerospace Help
 hs.hotkey.bind(HYPER, "h", "AeroSpace Help", aerospaceWidget.toggleHelp)
+-- Live-object census, printed to the console
+hs.hotkey.bind(HYPER, "m", "Memory Report", function()
+	hs.openConsole(true)
+	Memwatch.report()
+end)
 
 print("Reload Completed")
 

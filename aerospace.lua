@@ -9,7 +9,8 @@ local aerospaceHelp = require("aerospace_help")
 -- PR #2206 build. The CLI's socket protocol version must match the running
 -- app, so this follows whichever app is launched. Revert both together:
 -- "/Users/pierrebaillet/.nix-profile/bin/aerospace"
-local AEROSPACE = "/Users/pierrebaillet/ghq/github.com/nikitabobko/AeroSpace/result/bin/aerospace"
+local AEROSPACE = "/Users/pierrebaillet/.nix-profile/bin/aerospace"
+--[[ local AEROSPACE = "/Users/pierrebaillet/ghq/github.com/nikitabobko/AeroSpace/result/bin/aerospace" --]]
 local POLL_INTERVAL = 2 -- seconds — lightweight poll (focused ws + its windows only)
 
 -- Detect menubar height: notch Macs = 37pt, non-notch = 24pt
@@ -47,6 +48,26 @@ local cachedWorkspaces = nil
 local cachedFocusedWs = nil
 local cachedPills = nil  -- pill layout data for click detection
 
+-- Notified when the focused workspace changes. This is the single source of
+-- truth for it: the Stream Deck used to run a second, independent 2s poll of
+-- its own asking aerospace the same question, doubling the subprocess churn.
+local focusSubscribers = {}
+
+-- Record the focused workspace and tell subscribers if it moved.
+local function setFocusedWorkspace(ws)
+  if ws == cachedFocusedWs then
+    return false
+  end
+  cachedFocusedWs = ws
+  for _, fn in ipairs(focusSubscribers) do
+    local ok, err = pcall(fn, ws)
+    if not ok then
+      print("aerospace: focus subscriber failed: " .. tostring(err))
+    end
+  end
+  return true
+end
+
 -- Build a lookup table: lowercase app name → bundle ID from running apps
 local function buildBundleIDMap()
   local map = {}
@@ -64,6 +85,34 @@ end
 -- A CLI whose socket protocol version doesn't match the running app blocks
 -- forever instead of failing, so an untimed call leaks a process per poll.
 local CALL_TIMEOUT = 5 -- seconds
+local WATCHDOG_INTERVAL = 1 -- seconds
+
+-- In-flight calls, keyed by a plain integer: id → { task, args, deadline }.
+--
+-- The id matters. This used to give each call its own hs.timer.doAfter
+-- watchdog, which made a reference cycle — the task's completion closure held
+-- the timer, the timer's closure held the task — and Lua only breaks a cycle
+-- during a full collection, which it schedules off the Lua heap alone. An
+-- hs.task is a few dozen bytes to Lua while the NSTask + 3 NSPipes + 6
+-- NSFileHandles + KVO graph behind it costs ~18 KB, so Lua never felt the
+-- pressure and the pairs accumulated at ~0.5/s (~12 MB/hour). Keying the
+-- registry by id lets the completion closure capture a number instead of its
+-- own task, so nothing holds anything once the call is done. See memwatch.lua.
+local inFlight = {}
+local lastCallId = 0
+local watchdog = nil
+
+-- One watchdog for every in-flight call, rather than a timer per call.
+local function reapStalledCalls()
+  local now = hs.timer.secondsSinceEpoch()
+  for id, call in pairs(inFlight) do
+    if now >= call.deadline then
+      print("aerospace: " .. call.args .. " timed out after " .. CALL_TIMEOUT .. "s, terminating")
+      inFlight[id] = nil
+      call.task:terminate()
+    end
+  end
+end
 
 local function aerospace(args, callback)
   local argList = {}
@@ -71,9 +120,11 @@ local function aerospace(args, callback)
     table.insert(argList, word)
   end
 
-  local task, timeout
-  task = hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
-    if timeout then timeout:stop() end
+  lastCallId = lastCallId + 1
+  local id = lastCallId
+
+  local task = hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
+    inFlight[id] = nil
     if exitCode ~= 0 then
       if stdErr and stdErr ~= "" then print("aerospace: " .. args .. " error: " .. stdErr) end
       print("aerospace: failed to run")
@@ -90,12 +141,11 @@ local function aerospace(args, callback)
     callback(result)
   end, argList)
 
-  timeout = hs.timer.doAfter(CALL_TIMEOUT, function()
-    if task:isRunning() then
-      print("aerospace: " .. args .. " timed out after " .. CALL_TIMEOUT .. "s, terminating")
-      task:terminate()
-    end
-  end)
+  inFlight[id] = {
+    task = task,
+    args = args,
+    deadline = hs.timer.secondsSinceEpoch() + CALL_TIMEOUT,
+  }
   task:start()
 end
 
@@ -278,9 +328,13 @@ local function pollFocused()
     local focusedWs = focused and focused[1] and focused[1]["workspace"] or nil
     if not focusedWs then return end
 
-    -- Workspace changed → full refresh
+    -- Workspace changed → tell subscribers at once, then full refresh. The
+    -- notification does not wait for the refresh: the Stream Deck only needs
+    -- the name, and the refresh costs 2+N more calls.
     if focusedWs ~= cachedFocusedWs then
-      print("aerospace: workspace changed " .. (cachedFocusedWs or "nil") .. " → " .. focusedWs .. ", full refresh")
+      local previous = cachedFocusedWs
+      setFocusedWorkspace(focusedWs)
+      print("aerospace: workspace changed " .. (previous or "nil") .. " → " .. focusedWs .. ", full refresh")
       M.refresh()
       return
     end
@@ -351,7 +405,7 @@ function M.refresh()
     end
 
     cachedWorkspaces = workspaces
-    cachedFocusedWs = focusedWs
+    setFocusedWorkspace(focusedWs)
 
     local icon, pills = buildIcon(workspaces)
     cachedPills = pills
@@ -377,6 +431,7 @@ function M.start()
   M.refresh()
 
   refreshTimer = hs.timer.doEvery(POLL_INTERVAL, pollFocused)
+  watchdog = hs.timer.doEvery(WATCHDOG_INTERVAL, reapStalledCalls)
   print("aerospace: menubar widget started (polling every " .. POLL_INTERVAL .. "s)")
 end
 
@@ -385,6 +440,11 @@ function M.stop()
     refreshTimer:stop()
     refreshTimer = nil
   end
+  if watchdog then
+    watchdog:stop()
+    watchdog = nil
+  end
+  inFlight = {}
   if menubar then
     menubar:delete()
     menubar = nil
@@ -393,6 +453,18 @@ function M.stop()
   cachedWorkspaces = nil
   cachedFocusedWs = nil
   print("aerospace: menubar widget stopped")
+end
+
+-- The focused workspace, as of the last poll. Cached, so reading it costs
+-- nothing — call it instead of asking the aerospace CLI yourself.
+function M.focusedWorkspace()
+  return cachedFocusedWs
+end
+
+-- Call fn(workspaceName) whenever the focused workspace changes.
+function M.onFocusChange(fn)
+  table.insert(focusSubscribers, fn)
+  return M
 end
 
 -- Expose help panel toggle

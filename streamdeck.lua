@@ -220,44 +220,34 @@ end
 -- Revert: "/Users/pierrebaillet/.nix-profile/bin/aerospace"
 local AEROSPACE = "/Users/pierrebaillet/ghq/github.com/nikitabobko/AeroSpace/result/bin/aerospace"
 
+-- The menubar widget owns the aerospace state; this module reads it from there
+-- instead of querying the CLI itself. Requiring it here is safe: aerospace.lua
+-- does not require this file back, and init.lua's own require gets the cached
+-- module either way.
+local aerospaceWidget = require("aerospace")
+
 -- Run an aerospace command, then refresh the deck to reflect new state
 local function aeroExec(args)
 	hs.task.new(AEROSPACE, function()
-		-- Small delay to let aerospace settle, then refresh workspace state
-		hs.timer.doAfter(0.15, function() refreshAeroState() end)
+		-- Small delay to let aerospace settle, then refresh workspace state.
+		-- aerospace.lua owns the query and notifies us through onFocusChange.
+		hs.timer.doAfter(0.15, function()
+			aerospaceWidget.refresh()
+		end)
 	end, args):start()
 end
 
--- Fetch focused workspace and update button highlights.
--- Timed out because a CLI whose socket protocol version doesn't match the
--- running app blocks forever, and this runs on a 2s poll (see aeroPoller).
-local AERO_CALL_TIMEOUT = 5 -- seconds
-
-function refreshAeroState()
-	local task, timeout
-	task = hs.task.new(AEROSPACE, function(exitCode, stdOut)
-		if timeout then timeout:stop() end
-		if exitCode ~= 0 then return end
-		local ok, result = pcall(hs.json.decode, stdOut)
-		if ok and result and result[1] then
-			local newWs = result[1]["workspace"]
-			if newWs ~= aeroFocusedWs then
-				aeroFocusedWs = newWs
-				if currentMode == "aerospace" then
-					UpdateDeck()
-				end
-			end
-		end
-	end, { "list-workspaces", "--focused", "--json" })
-
-	timeout = hs.timer.doAfter(AERO_CALL_TIMEOUT, function()
-		if task:isRunning() then
-			print("aerospace: list-workspaces timed out after " .. AERO_CALL_TIMEOUT .. "s, terminating")
-			task:terminate()
-		end
-	end)
-	task:start()
-end
+-- Track the focused workspace from aerospace.lua's poll rather than running a
+-- second one here. This module used to spawn its own `list-workspaces` task
+-- every 2s asking the same question the menubar widget was already asking,
+-- with a per-call watchdog timer that formed a retain cycle with its task —
+-- half of the ~12 MB/hour the config was leaking came from this file.
+aerospaceWidget.onFocusChange(function(ws)
+	aeroFocusedWs = ws
+	if currentMode == "aerospace" then
+		UpdateDeck()
+	end
+end)
 
 -- An aerospace button: shows label+sublabel, runs aerospace command on press
 local function aeroButton(label, sublabel, args, bgColor)
@@ -571,18 +561,12 @@ function UpdateDeck()
 	end
 end
 
--- Poll aerospace state to keep workspace highlights in sync
-local aeroPoller = hs.timer.doEvery(2, function()
-	if currentMode == "aerospace" then
-		refreshAeroState()
-	end
-end)
-
 hs.streamdeck.init(function(connected, device)
 	print("Setting up streamdeck configuration for " .. device:serialNumber())
 	deck = device
 	deck:reset()
-	refreshAeroState()
+	-- Seed from the widget's cache; onFocusChange keeps it current from here.
+	aeroFocusedWs = aerospaceWidget.focusedWorkspace()
 	UpdateDeck()
 end)
 
